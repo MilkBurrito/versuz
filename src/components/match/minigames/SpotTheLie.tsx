@@ -1,0 +1,92 @@
+"use client";
+
+// §6.7 Spot the Lie: the enemy swapped two words of the Word. Tap the two
+// out-of-place words to swap them back, then Check. (MVP zero-data tier.)
+
+import { useState } from "react";
+import type { MinigameRound } from "@/lib/engine/match";
+import { buildSpotTheLie } from "@/lib/engine/minigames";
+import { CheckButton } from "@/components/ui/Button";
+import { ChunkContext } from "./shared";
+import { WordOrder } from "./WordOrder";
+
+export function SpotTheLie({
+  round,
+  onCheck,
+}: {
+  round: MinigameRound;
+  onCheck: (correct: boolean) => void;
+}) {
+  const [data] = useState(() => buildSpotTheLie(round));
+  // No swappable pair (e.g. a chunk of all function words): fall back to Word Order.
+  if (!data) return <WordOrder round={round} onCheck={onCheck} />;
+  return (
+    <SpotTheLieBoard round={round} initial={data.displayed.map((w) => w.display)} onCheck={onCheck} />
+  );
+}
+
+function SpotTheLieBoard({
+  round,
+  initial,
+  onCheck,
+}: {
+  round: MinigameRound;
+  initial: string[];
+  onCheck: (correct: boolean) => void;
+}) {
+  const [order, setOrder] = useState(initial); // current display order
+  const [selected, setSelected] = useState<number | null>(null);
+  const [checkedWrong, setCheckedWrong] = useState(false);
+  const truth = round.words.map((w) => w.display);
+
+  function tap(i: number) {
+    setCheckedWrong(false);
+    if (selected === null) {
+      setSelected(i);
+    } else if (selected === i) {
+      setSelected(null);
+    } else {
+      setOrder((prev) => {
+        const next = [...prev];
+        [next[selected], next[i]] = [next[i]!, next[selected]!];
+        return next;
+      });
+      setSelected(null);
+    }
+  }
+
+  function check() {
+    const ok = order.join(" ") === truth.join(" ");
+    setCheckedWrong(!ok);
+    onCheck(ok);
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <ChunkContext words={round.contextWords} />
+        <p className="font-serif text-[19px] leading-[2.15] text-ink">
+          {order.map((word, i) => (
+            <button
+              key={i}
+              onClick={() => tap(i)}
+              className={`mx-0.5 inline-block rounded-lg px-1 align-baseline font-serif text-[19px] transition-colors ${
+                selected === i
+                  ? "bg-gold-wash text-gold-deep ring-2 ring-gold"
+                  : checkedWrong && word !== truth[i]
+                    ? "bg-bad-wash text-bad"
+                    : "text-ink active:bg-shell"
+              }`}
+            >
+              {word}
+            </button>
+          ))}
+        </p>
+        <p className="mt-3 text-[11px] font-bold text-ink-faint">
+          Two words were swapped. Tap them both to swap them back.
+        </p>
+      </div>
+      <CheckButton onClick={check} label={checkedWrong ? "Check again" : "Check"} />
+    </div>
+  );
+}

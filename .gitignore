@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+# NOTE: public/bible/*.json IS committed — Vercel builds can't reach the raw
+# datasets (../data/bible lives outside this repo). Regenerate via gen:bible.

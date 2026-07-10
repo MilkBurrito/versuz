@@ -1,0 +1,49 @@
+"use client";
+
+// Four-tab bottom nav (v1.2 §13-B): Home · Explore · Shop · Settings.
+// Shop ships as a coming-soon stub; the gold dot marks it not-yet-live.
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { PixelIcon } from "@/components/ui/icons";
+
+const TABS = [
+  { href: "/", label: "Home", icon: "nav-home" },
+  { href: "/explore", label: "Explore", icon: "nav-explore" },
+  { href: "/shop", label: "Shop", icon: "nav-shop", soon: true },
+  { href: "/settings", label: "Settings", icon: "nav-settings" },
+] as const;
+
+export function BottomNav() {
+  const pathname = usePathname();
+  return (
+    <nav className="sticky bottom-0 z-30 border-t border-black/5 bg-white pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto flex max-w-md">
+        {TABS.map((tab) => {
+          const active = pathname === tab.href;
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className="relative flex flex-1 flex-col items-center gap-1 py-2.5"
+            >
+              <span className={active ? "" : "opacity-45 grayscale"}>
+                <PixelIcon name={tab.icon} size={24} />
+              </span>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider ${
+                  active ? "text-gold-deep" : "text-ink-faint"
+                }`}
+              >
+                {tab.label}
+              </span>
+              {"soon" in tab && tab.soon && (
+                <span className="absolute right-1/2 top-1.5 mr-[-18px] h-1.5 w-1.5 rounded-full bg-gold" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

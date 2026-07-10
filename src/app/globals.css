@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Versuz design tokens (from the four mockups):
+   warm cream world · neutral-gray app shell · gold accent (nameplates, XP,
+   energy, streak) · indigo battle scene · serif verse text, chunky sans UI.
+--------------------------------------------------------------------------- */
+@theme {
+  /* world + shell */
+  --color-cream: #f5f0e8;
+  --color-cream-card: #fdfaf2;
+  --color-shell: #ececec;
+  --color-shell-deep: #a8a8a8;
+  --color-hero-bg: #b9b9b9;
+
+  /* ink */
+  --color-ink: #2e2c28;
+  --color-ink-soft: #6f6c66;
+  --color-ink-faint: #a9a59c;
+
+  /* brand gold */
+  --color-gold: #eab635;
+  --color-gold-deep: #c9921c;
+  --color-gold-soft: #f7d979;
+  --color-gold-dark: #6d4f10;
+  --color-gold-wash: #faf3df;
+
+  /* battle scene */
+  --color-battle: #4f2cd9;
+  --color-battle-deep: #3413ad;
+  --color-battle-mid: #4423c9;
+
+  /* status */
+  --color-hp: #e8483f;
+  --color-hp-deep: #b3251d;
+  --color-ok: #3f9d58;
+  --color-ok-wash: #e9f5ec;
+  --color-bad: #d64545;
+  --color-bad-wash: #fbeeee;
+
+  /* gems */
+  --color-gem: #35d07f;
+  --color-gem-deep: #17945a;
+  --color-gem-tile: #3d4351;
+
+  --font-serif: var(--font-verse), Georgia, serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--color-shell);
+}
+
+body {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Pixel art must stay crisp when scaled */
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* --- tiny animation vocabulary (Pokémon Game Boy energy: short + punchy) --- */
+@keyframes vz-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.vz-shake { animation: vz-shake 0.35s ease-in-out; }
+
+@keyframes vz-lunge {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(26px); }
+}
+.vz-lunge { animation: vz-lunge 0.35s ease-out; }
+
+@keyframes vz-lunge-left {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-26px); }
+}
+.vz-lunge-left { animation: vz-lunge-left 0.35s ease-out; }
+
+@keyframes vz-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.vz-pop { animation: vz-pop 0.3s ease-out both; }
+
+@keyframes vz-rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.vz-rise { animation: vz-rise 0.28s ease-out both; }
+
+@keyframes vz-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.vz-sheet-up { animation: vz-sheet-up 0.28s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+
+@keyframes vz-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(53, 208, 127, 0.7)); }
+  50% { filter: drop-shadow(0 0 9px rgba(53, 208, 127, 0.95)); }
+}
+.vz-glow { animation: vz-glow 1.6s ease-in-out infinite; }
+
+/* Parallax layer drift: one loop = one tile width (height × aspect ratio,
+   via container-query units — the Parallax root sets container-type: size). */
+@keyframes vz-parallax {
+  from { background-position-x: 0; }
+  to { background-position-x: calc(-100cqh * var(--vz-tile-w, 1)); }
+}
+.vz-parallax-scroll {
+  animation-name: vz-parallax;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Hero walk-in: slides from off-screen left while the run anim plays. */
+@keyframes vz-walk-in {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(0); }
+}
+.vz-walk-in { animation: vz-walk-in 1.6s linear both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vz-shake, .vz-lunge, .vz-lunge-left, .vz-pop, .vz-rise, .vz-sheet-up, .vz-glow,
+  .vz-parallax-scroll, .vz-walk-in {
+    animation: none;
+  }
+}

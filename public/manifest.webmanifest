@@ -1,0 +1,19 @@
+{
+  "name": "Versuz — Bible Memory RPG",
+  "short_name": "Versuz",
+  "description": "Battle the dark with the Word. A Bible-memorization RPG.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f0e8",
+  "theme_color": "#f5f0e8",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
