@@ -82,18 +82,24 @@ export class LocalGameApi implements GameApi {
   }
 
   async load(): Promise<GameSnapshot> {
-    const raw = await this.store.load();
-    if (raw) {
-      this.doc = JSON.parse(raw) as Doc;
-      // Migrate docs saved before the field existed / with retired sprite ids
-      // (soldier/knight/thief/anomaly → the Elementals era).
-      const VALID_HEROES = ["fire-knight", "water-priestess", "crystal-mauler", "leaf-ranger", "metal-bladekeeper"];
-      if (!VALID_HEROES.includes(this.doc.user.characterSprite)) {
-        this.doc.user.characterSprite = "fire-knight";
+    // The in-memory doc is the authority once loaded; the store is
+    // write-behind persistence. Re-reading it here would race in-flight
+    // cloud saves (a stale SELECT can replace the doc mid-match, then get
+    // queued and clobber the newer save — losing energy spends and the open
+    // match, which strands the finisher on "invalid match").
+    if (!this.doc) {
+      const raw = await this.store.load();
+      if (raw) {
+        this.doc = JSON.parse(raw) as Doc;
+        // Migrate docs saved before the field existed / with retired sprite ids
+        // (soldier/knight/thief/anomaly → the Elementals era).
+        const VALID_HEROES = ["fire-knight", "water-priestess", "crystal-mauler", "leaf-ranger", "metal-bladekeeper"];
+        if (!VALID_HEROES.includes(this.doc.user.characterSprite)) {
+          this.doc.user.characterSprite = "fire-knight";
+        }
+      } else {
+        this.doc = this.opts.seedDemo ? await this.createSeedDoc() : this.createFreshDoc();
       }
-    } else {
-      this.doc = this.opts.seedDemo ? await this.createSeedDoc() : this.createFreshDoc();
-      this.save();
     }
     // Lazy energy regen on load (what the server does on every read).
     const user = this.get().user;
