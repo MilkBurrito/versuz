@@ -434,6 +434,20 @@ export class LocalGameApi implements GameApi {
     };
   }
 
+  /** Hints cost energy like matches do (GAME.hints.ENERGY_COST, spent 1 at a time). */
+  async spendHintEnergy(): Promise<number | null> {
+    const d = this.get();
+    let energy = d.user.energy;
+    for (let i = 0; i < GAME.hints.ENERGY_COST; i++) {
+      const spent = spendEnergy(energy, Date.now());
+      if (!spent) return null;
+      energy = spent;
+    }
+    d.user.energy = energy;
+    this.save();
+    return energy.current;
+  }
+
   async addTile(verseId: string, translation: TranslationCode, tag: ThemeTag): Promise<Tile> {
     const d = this.get();
     const existing = d.tiles.find((t) => t.verseId === verseId && t.translation === translation);

@@ -34,6 +34,11 @@ export const GAME = {
     REGEN_SECONDS: 5 * 60 * 60, // +1 per ~5h → full refill in ~24h
   },
 
+  // --- In-match hints: reveal the next correct answer, for an energy point ---
+  hints: {
+    ENERGY_COST: 1,
+  },
+
   // --- §5 Player HP (mistakes allowed) by verse level 1..7 ---
   playerHpByLevel: [5, 5, 4, 4, 3, 2, 2] as const,
 

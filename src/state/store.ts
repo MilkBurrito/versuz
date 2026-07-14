@@ -67,6 +67,8 @@ interface AppState {
   startBoss(campaignId: string): Promise<void>;
   reportRound(correct: boolean): void;
   reportFinisher(correct: boolean): Promise<void>;
+  /** Spend energy for a hint; true when it was affordable (UI then reveals). */
+  spendHint(): Promise<boolean>;
   abandonMatch(): Promise<void>;
   advancePost(): void;
   exitPostMatch(): void;
@@ -233,6 +235,18 @@ export const useApp = create<AppState>((set, get) => ({
     }
   },
 
+  async spendHint() {
+    try {
+      const remaining = await api().spendHintEnergy();
+      if (remaining === null) return false;
+      await get().refresh();
+      return true;
+    } catch (err) {
+      console.error("hint spend failed", err);
+      return false;
+    }
+  },
+
   async reportFinisher(correct) {
     const m = get().match;
     if (!m || m.phase !== "finisher") return;
@@ -337,7 +351,17 @@ async function settle(
   set: (partial: Partial<AppState>) => void,
   report: MatchReport,
 ): Promise<void> {
-  const result = await api().settleMatch(report);
+  let result: SettleResult;
+  try {
+    result = await api().settleMatch(report);
+  } catch (err) {
+    // Never strand the player on a dead match screen: bail to Home. (Progress
+    // for this match is lost, but the alternative is a frozen finisher.)
+    console.error("settle failed", err);
+    set({ match: null });
+    void get().refresh();
+    return;
+  }
   const m = get().match;
   if (!m) return;
   if (report.result === "win") {

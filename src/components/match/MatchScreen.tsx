@@ -70,6 +70,13 @@ export function MatchScreen({ match }: { match: MatchSession }) {
   // SpriteAnimator's onEnd resolves to whatever attack is currently in flight
   // (a ref, so re-renders during the ~2s playback can't drop the handler).
   const heroAttackDoneRef = useRef<(() => void) | null>(null);
+  // Watchdog: if onEnd somehow never arrives, the match must not stay gated.
+  const attackWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (attackWatchdogRef.current) clearTimeout(attackWatchdogRef.current);
+    };
+  }, []);
 
   const hero = characterById(snapshot?.user.characterSprite);
   const tag = matchTag(match);
@@ -95,11 +102,18 @@ export function MatchScreen({ match }: { match: MatchSession }) {
     setActing(true);
     setHeroAnim((s) => ({ anim, key: s.key + 1 }));
     heroAttackDoneRef.current = () => {
-      heroAttackDoneRef.current = null;
+      heroAttackDoneRef.current = null; // idempotent — watchdog + onEnd can't double-fire
+      if (attackWatchdogRef.current) clearTimeout(attackWatchdogRef.current);
       setActing(false);
       setHeroAnim((s) => ({ anim: "idle", key: s.key + 1 }));
       after();
     };
+    const def = hero.sprite.anims[anim];
+    const playbackMs = def ? (def.frames / def.fps) * 1000 : 2000;
+    attackWatchdogRef.current = setTimeout(
+      () => heroAttackDoneRef.current?.(),
+      playbackMs + 2000,
+    );
   }
 
   function onRoundCheck(correct: boolean) {
@@ -140,7 +154,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
 
   return (
     // Full-bleed surface above every overlay (campaign detail, add sheets are z-50).
-    <div className="fixed inset-0 z-[60] flex flex-col bg-white">
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-x-clip bg-white">
       {/* --- battle scene --- */}
       <div className="relative w-full shrink-0 pb-9 pt-[calc(env(safe-area-inset-top)+8px)]">
         <Parallax env={env} scrolling={entering} />
@@ -189,7 +203,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
                   sprite={enemy.sprite}
                   anim={enemyDead ? "death" : enemyAnim.anim}
                   size={enemy.displayH}
-                  flip
+                  flip={enemy.flip}
                   playKey={enemyAnim.key}
                 />
               </div>

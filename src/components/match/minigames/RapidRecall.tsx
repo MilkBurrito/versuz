@@ -6,8 +6,9 @@
 import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { rapidRecallMatches } from "@/lib/engine/minigames";
+import { normalizeWord } from "@/lib/engine/text";
 import { displayRef } from "@/lib/refs";
-import { CheckButton } from "@/components/ui/Button";
+import { CheckRow } from "./shared";
 
 export function RapidRecall({
   round,
@@ -20,11 +21,25 @@ export function RapidRecall({
 }) {
   const [value, setValue] = useState("");
   const [wrong, setWrong] = useState(false);
+  const [hintWord, setHintWord] = useState<string | null>(null);
 
   function check() {
     const ok = rapidRecallMatches(round.words, value);
     setWrong(!ok);
     onCheck(ok);
+  }
+
+  /** Hint: reveal the word that comes after the correctly-typed prefix. */
+  function hint() {
+    const typed = value.trim().split(/\s+/).filter(Boolean);
+    let n = 0;
+    while (
+      n < round.words.length &&
+      n < typed.length &&
+      normalizeWord(typed[n]!) === round.words[n]!.norm
+    )
+      n++;
+    setHintWord(round.words[n]?.display ?? null);
   }
 
   return (
@@ -51,8 +66,18 @@ export function RapidRecall({
           Not quite — small typos are forgiven, missing words are not.
         </p>
       )}
+      {hintWord && (
+        <p className="mt-2 text-center text-[13px] font-bold text-gold-deep">
+          Next word: <span className="font-serif text-[15px]">{hintWord}</span>
+        </p>
+      )}
       <div className="pt-4">
-        <CheckButton disabled={!value.trim()} onClick={check} label={wrong ? "Check again" : "Check"} />
+        <CheckRow
+          checkDisabled={!value.trim()}
+          onCheck={check}
+          label={wrong ? "Check again" : "Check"}
+          onHint={hint}
+        />
       </div>
     </div>
   );

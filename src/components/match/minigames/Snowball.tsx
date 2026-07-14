@@ -9,8 +9,7 @@ import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildSnowballSegments, shuffle } from "@/lib/engine/minigames";
 import type { Word } from "@/lib/engine/text";
-import { CheckButton } from "@/components/ui/Button";
-import { ChipButton, ChunkContext, EmptySlot, PlacedChip, usePlacement } from "./shared";
+import { CheckRow, ChipButton, ChunkContext, EmptySlot, PlacedChip, usePlacement } from "./shared";
 
 export function Snowball({
   round,
@@ -80,16 +79,18 @@ function SnowballSegment({
       </div>
       <div className="flex flex-wrap justify-center gap-2 py-4">
         {bank.map((word, i) => (
-          <ChipButton key={i} word={word} used={p.usedBankIndexes.has(i)} onClick={() => p.place(i)} />
+          <ChipButton key={i} word={word} used={p.usedBankIndexes.has(i)} hinted={p.hintedBankIndex === i} onClick={() => p.place(i)} />
         ))}
       </div>
-      <CheckButton
-        disabled={!p.allFilled}
-        onClick={() => {
+      <CheckRow
+        checkDisabled={!p.allFilled}
+        onCheck={() => {
           if (p.check()) onSegmentDone();
           else onMistake();
         }}
         label={p.checkedOnce && p.wrongSlots.size > 0 ? "Check again" : "Check"}
+        hintDisabled={p.allFilled}
+        onHint={p.hint}
       />
     </div>
   );

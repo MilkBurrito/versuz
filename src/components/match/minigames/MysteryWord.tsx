@@ -6,7 +6,7 @@
 import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildMysteryWord } from "@/lib/engine/minigames";
-import { ChunkContext } from "./shared";
+import { ChunkContext, HintButton } from "./shared";
 
 export function MysteryWord({
   round,
@@ -17,6 +17,7 @@ export function MysteryWord({
 }) {
   const [data] = useState(() => buildMysteryWord(round));
   const [struck, setStruck] = useState<Set<string>>(new Set());
+  const [revealed, setRevealed] = useState(false); // hint: the answer glows
   const answer = round.words[data.hiddenIndex]!.norm;
 
   function pick(option: string) {
@@ -52,6 +53,7 @@ export function MysteryWord({
       <div className="grid grid-cols-2 gap-2.5 py-4">
         {data.options.map((option) => {
           const dead = struck.has(option);
+          const hinted = revealed && option === answer;
           return (
             <button
               key={option}
@@ -60,7 +62,9 @@ export function MysteryWord({
               className={`rounded-2xl border-2 px-3 py-3.5 font-serif text-[17px] transition-colors ${
                 dead
                   ? "border-bad/40 bg-bad-wash text-bad/50 line-through"
-                  : "border-shell-deep/40 bg-white text-ink active:bg-shell"
+                  : hinted
+                    ? "vz-hint-glow border-gold bg-gold-wash text-gold-deep"
+                    : "border-shell-deep/40 bg-white text-ink active:bg-shell"
               }`}
             >
               {option}
@@ -68,6 +72,7 @@ export function MysteryWord({
           );
         })}
       </div>
+      <HintButton onHint={() => setRevealed(true)} disabled={revealed} />
     </div>
   );
 }

@@ -56,7 +56,7 @@ export function PostMatch({ match }: { match: MatchSession }) {
                 sprite={beaten.sprite}
                 anim="death"
                 size={Math.round(beaten.displayH * 0.85)}
-                flip
+                flip={beaten.flip}
                 playKey={1}
               />
             </div>

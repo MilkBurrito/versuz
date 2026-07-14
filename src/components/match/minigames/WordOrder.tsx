@@ -6,8 +6,7 @@
 import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildWordOrder } from "@/lib/engine/minigames";
-import { CheckButton } from "@/components/ui/Button";
-import { ChipButton, ChunkContext, EmptySlot, PlacedChip, usePlacement } from "./shared";
+import { CheckRow, ChipButton, ChunkContext, EmptySlot, PlacedChip, usePlacement } from "./shared";
 
 export function WordOrder({
   round,
@@ -37,13 +36,15 @@ export function WordOrder({
       </div>
       <div className="flex flex-wrap justify-center gap-2 py-4">
         {data.bank.map((word, i) => (
-          <ChipButton key={i} word={word} used={p.usedBankIndexes.has(i)} onClick={() => p.place(i)} />
+          <ChipButton key={i} word={word} used={p.usedBankIndexes.has(i)} hinted={p.hintedBankIndex === i} onClick={() => p.place(i)} />
         ))}
       </div>
-      <CheckButton
-        disabled={!p.allFilled}
-        onClick={() => onCheck(p.check())}
+      <CheckRow
+        checkDisabled={!p.allFilled}
+        onCheck={() => onCheck(p.check())}
         label={p.checkedOnce && p.wrongSlots.size > 0 ? "Check again" : "Check"}
+        hintDisabled={p.allFilled}
+        onHint={p.hint}
       />
     </div>
   );

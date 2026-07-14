@@ -8,8 +8,7 @@
 import { useRef, useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { normalizeWord } from "@/lib/engine/text";
-import { CheckButton } from "@/components/ui/Button";
-import { ChunkContext } from "./shared";
+import { CheckRow, ChunkContext } from "./shared";
 
 export function FirstLetter({
   round,
@@ -46,6 +45,17 @@ export function FirstLetter({
     onCheck(bad.size === 0);
   }
 
+  const solved = answers.every((w, i) => normalizeWord(values[i]!) === w.norm);
+
+  /** Hint: fill the first empty-or-incorrect box, then move the caret on. */
+  function hint() {
+    const i = answers.findIndex((w, idx) => normalizeWord(values[idx]!) !== w.norm);
+    if (i === -1) return;
+    setValue(i, answers[i]!.norm);
+    const next = inputRefs.current[i + 1];
+    if (next && values[i + 1] === "") next.focus();
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto">
@@ -62,10 +72,18 @@ export function FirstLetter({
                 value={values[i]}
                 onChange={(e) => setValue(i, e.target.value)}
                 onKeyDown={(e) => {
-                  // v1.0 behavior: space (or Enter) hops to the next word's box.
+                  // v1.0 behavior: space (or Enter) hops to the next word's box;
+                  // backspace in an EMPTY box retreats to the previous one.
                   if (e.key === " " || e.key === "Enter") {
                     e.preventDefault();
                     inputRefs.current[i + 1]?.focus();
+                  } else if (e.key === "Backspace" && values[i] === "") {
+                    e.preventDefault();
+                    const prev = inputRefs.current[i - 1];
+                    if (prev) {
+                      prev.focus();
+                      prev.setSelectionRange(prev.value.length, prev.value.length);
+                    }
                   }
                 }}
                 placeholder={w.display[0]}
@@ -74,7 +92,12 @@ export function FirstLetter({
                 autoCorrect="off"
                 spellCheck={false}
                 size={Math.max(3, w.norm.length)}
-                style={{ width: `${Math.max(3, w.norm.length + 1)}ch` }}
+                // Sized to whichever is longer — the answer or what's actually
+                // typed — with the border-box padding+border (20px) added on
+                // top of the ch measure so serif words never clip.
+                style={{
+                  width: `calc(${Math.max(3, Math.max(w.norm.length, values[i]!.length) + 2)}ch + 24px)`,
+                }}
                 className={`rounded-xl border-2 px-2 py-2 text-center font-serif text-[17px] outline-none transition-colors placeholder:font-semibold placeholder:text-ink-faint focus:border-gold ${
                   isWrong ? "border-bad bg-bad-wash text-bad" : "border-shell-deep/40 bg-white text-ink"
                 }`}
@@ -83,13 +106,15 @@ export function FirstLetter({
           })}
         </div>
         <p className="mt-3 text-[11px] font-bold text-ink-faint">
-          Type each whole word — space jumps to the next box.
+          Type each whole word — space jumps forward, backspace hops back.
         </p>
       </div>
-      <CheckButton
-        disabled={!allFilled}
-        onClick={check}
+      <CheckRow
+        checkDisabled={!allFilled}
+        onCheck={check}
         label={checkedOnce && wrong.size > 0 ? "Check again" : "Check"}
+        hintDisabled={solved}
+        onHint={hint}
       />
     </div>
   );

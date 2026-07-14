@@ -31,6 +31,8 @@ export interface GameApi {
   startMatch(tileId: string): Promise<StartMatchResult>;
   /** Report what happened; the authority decides what it's worth. */
   settleMatch(report: MatchReport): Promise<SettleResult>;
+  /** Spend energy on an in-match hint. Returns remaining energy, null when short. */
+  spendHintEnergy(): Promise<number | null>;
   /** Spend 1 energy and open the campaign boss fight (gate: all verses L3+). */
   startBossMatch(campaignId: string): Promise<StartMatchResult>;
   /**

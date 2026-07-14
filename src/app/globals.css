@@ -51,6 +51,9 @@ html,
 body {
   height: 100%;
   background: var(--color-shell);
+  /* The wide hero frames intentionally overflow their anchors — clip at the
+     document so no screen ever pans sideways (mobile Home slid left-right). */
+  overflow-x: clip;
 }
 
 body {
@@ -111,6 +114,13 @@ body {
 }
 .vz-glow { animation: vz-glow 1.6s ease-in-out infinite; }
 
+/* Hint glow: the revealed next answer pulses gold until acted on. */
+@keyframes vz-hint-glow {
+  0%, 100% { box-shadow: 0 0 3px 1px rgba(212, 164, 41, 0.55); }
+  50% { box-shadow: 0 0 10px 3px rgba(212, 164, 41, 0.9); }
+}
+.vz-hint-glow { animation: vz-hint-glow 1.3s ease-in-out infinite; }
+
 /* Parallax layer drift: one loop = one tile width (height × aspect ratio,
    via container-query units — the Parallax root sets container-type: size). */
 @keyframes vz-parallax {
@@ -134,5 +144,10 @@ body {
   .vz-shake, .vz-lunge, .vz-lunge-left, .vz-pop, .vz-rise, .vz-sheet-up, .vz-glow,
   .vz-parallax-scroll, .vz-walk-in {
     animation: none;
+  }
+  /* Hint keeps a static gold ring — the reveal must survive without motion. */
+  .vz-hint-glow {
+    animation: none;
+    box-shadow: 0 0 8px 2px rgba(212, 164, 41, 0.8);
   }
 }

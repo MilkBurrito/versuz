@@ -97,18 +97,24 @@ function SpriteStrip({
     }
   }, [sprite, def]);
 
+  // Frames derive from elapsed TIME, not tick count: background tabs throttle
+  // intervals (Chrome: down to one tick/minute), so a per-tick counter could
+  // freeze a one-shot mid-attack and never fire onEnd (stuck finishers). With
+  // elapsed time, a single late tick jumps straight to the end.
   useEffect(() => {
+    const start = Date.now();
     const interval = setInterval(() => {
-      setFrame((f) => {
-        const next = f + 1;
-        if (next >= def.frames) {
-          if (def.loop) return 0;
-          clearInterval(interval);
-          onEndRef.current?.();
-          return f; // hold last frame
-        }
-        return next;
-      });
+      const elapsed = (Date.now() - start) / 1000;
+      const f = Math.floor(elapsed * def.fps);
+      if (f < def.frames) {
+        setFrame(f);
+      } else if (def.loop) {
+        setFrame(f % def.frames);
+      } else {
+        clearInterval(interval);
+        setFrame(def.frames - 1); // hold last frame
+        onEndRef.current?.();
+      }
     }, 1000 / def.fps);
     return () => clearInterval(interval);
   }, [def]);

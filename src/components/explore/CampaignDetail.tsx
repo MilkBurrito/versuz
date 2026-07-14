@@ -143,7 +143,7 @@ export function CampaignDetail({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex w-[56px] justify-center overflow-visible">
-                  <SpriteAnimator sprite={castBoss(campaign.id, campaign.id).sprite} anim="idle" size={54} flip />
+                  <SpriteAnimator sprite={castBoss(campaign.id, campaign.id).sprite} anim="idle" size={54} flip={castBoss(campaign.id, campaign.id).flip} />
                 </div>
                 <div>
                   <p className={`text-[14px] font-extrabold ${bossUnlocked ? "text-gold-deep" : "text-ink-faint"}`}>

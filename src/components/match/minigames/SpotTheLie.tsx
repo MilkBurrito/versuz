@@ -6,8 +6,7 @@
 import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildSpotTheLie } from "@/lib/engine/minigames";
-import { CheckButton } from "@/components/ui/Button";
-import { ChunkContext } from "./shared";
+import { CheckRow, ChunkContext } from "./shared";
 import { WordOrder } from "./WordOrder";
 
 export function SpotTheLie({
@@ -37,7 +36,9 @@ function SpotTheLieBoard({
   const [order, setOrder] = useState(initial); // current display order
   const [selected, setSelected] = useState<number | null>(null);
   const [checkedWrong, setCheckedWrong] = useState(false);
+  const [hintOn, setHintOn] = useState(false); // hint: the out-of-place pair glows
   const truth = round.words.map((w) => w.display);
+  const solved = order.join(" ") === truth.join(" ");
 
   function tap(i: number) {
     setCheckedWrong(false);
@@ -73,9 +74,11 @@ function SpotTheLieBoard({
               className={`mx-0.5 inline-block rounded-lg px-1 align-baseline font-serif text-[19px] transition-colors ${
                 selected === i
                   ? "bg-gold-wash text-gold-deep ring-2 ring-gold"
-                  : checkedWrong && word !== truth[i]
-                    ? "bg-bad-wash text-bad"
-                    : "text-ink active:bg-shell"
+                  : hintOn && word !== truth[i]
+                    ? "vz-hint-glow bg-gold-wash text-gold-deep"
+                    : checkedWrong && word !== truth[i]
+                      ? "bg-bad-wash text-bad"
+                      : "text-ink active:bg-shell"
               }`}
             >
               {word}
@@ -86,7 +89,12 @@ function SpotTheLieBoard({
           Two words were swapped. Tap them both to swap them back.
         </p>
       </div>
-      <CheckButton onClick={check} label={checkedWrong ? "Check again" : "Check"} />
+      <CheckRow
+        onCheck={check}
+        label={checkedWrong ? "Check again" : "Check"}
+        hintDisabled={hintOn || solved}
+        onHint={() => setHintOn(true)}
+      />
     </div>
   );
 }

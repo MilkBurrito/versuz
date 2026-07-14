@@ -6,8 +6,7 @@
 import { useEffect, useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildFadingWords } from "@/lib/engine/minigames";
-import { CheckButton } from "@/components/ui/Button";
-import { ChipButton, ChunkContext, usePlacement } from "./shared";
+import { CheckRow, ChipButton, ChunkContext, usePlacement } from "./shared";
 
 const READ_MS = 2600; // how long the full text shows before fading (tunable)
 
@@ -84,14 +83,16 @@ export function FadingWords({
       {faded && (
         <div className="flex flex-wrap justify-center gap-2 py-4">
           {data.bank.map((word, i) => (
-            <ChipButton key={i} word={word} used={p.usedBankIndexes.has(i)} onClick={() => p.place(i)} />
+            <ChipButton key={i} word={word} used={p.usedBankIndexes.has(i)} hinted={p.hintedBankIndex === i} onClick={() => p.place(i)} />
           ))}
         </div>
       )}
-      <CheckButton
-        disabled={!faded || !p.allFilled}
-        onClick={() => onCheck(p.check())}
+      <CheckRow
+        checkDisabled={!faded || !p.allFilled}
+        onCheck={() => onCheck(p.check())}
         label={p.checkedOnce && p.wrongSlots.size > 0 ? "Check again" : "Check"}
+        hintDisabled={!faded || p.allFilled}
+        onHint={p.hint}
       />
     </div>
   );
