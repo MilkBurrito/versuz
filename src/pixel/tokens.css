@@ -1,0 +1,77 @@
+/* ============================================================================
+   PIXEL FOUNDATION — CSS side of src/pixel/tokens.ts (keep in sync).
+
+   Everything here is SCOPED to .vz-pixel-shell on purpose: the live app's
+   current art is explicitly untouched until final assets arrive (Build Brief
+   asset guardrail). When the app migrates onto the grid, these rules move to
+   the global layer.
+
+   --scale is set by <PixelShell> (integer only). --u = one art-pixel in CSS
+   px. Components inside the shell may ONLY use --u multiples for sizing.
+   ========================================================================= */
+
+.vz-pixel-shell {
+  /* one art-pixel, in CSS px */
+  --u: calc(1px * var(--scale, 2));
+
+  /* spacing scale (art-px × {1,2,3,4,6,8,12,16}) */
+  --s1: calc(var(--u) * 1);
+  --s2: calc(var(--u) * 2);
+  --s3: calc(var(--u) * 3);
+  --s4: calc(var(--u) * 4);
+  --s5: calc(var(--u) * 6);
+  --s6: calc(var(--u) * 8);
+  --s7: calc(var(--u) * 12);
+  --s8: calc(var(--u) * 16);
+
+  /* pixel type scale: native 8px font at integer multiples of --u */
+  --font-px: calc(var(--u) * 8);
+  --font-px-lg: calc(var(--u) * 16);
+
+  /* ---- DRAFT lore palette (mirror of tokens.ts PALETTE) ---- */
+  --everflame-bright: #ffd867;
+  --everflame: #eab635;
+  --everflame-deep: #c9921c;
+  --everflame-core: #fff3c4;
+
+  --great-tree-light: #8fce5a;
+  --great-tree: #4f9d3f;
+  --great-tree-deep: #2e6b2d;
+  --great-tree-bark: #6b4a2b;
+
+  --parchment-light: #fdfaf2;
+  --parchment: #f5f0e8;
+  --parchment-deep: #e3d9c4;
+  --parchment-ink: #2e2c28;
+  --parchment-ink-soft: #6f6c66;
+
+  --temple-stone-light: #c9cdd4;
+  --temple-stone: #8f95a3;
+  --temple-stone-deep: #5a5f6d;
+  --temple-stone-dark: #33363f;
+
+  --forge-ember: #e8712f;
+  --forge-hot: #ff9d4d;
+  --forge-iron: #4a4a52;
+  --forge-iron-deep: #2b2b31;
+
+  --darkness-pale: #9aa3ab;
+  --darkness: #5d6a72;
+  --darkness-deep: #39434b;
+  --darkness-void: #1d2329;
+  --darkness-bruise: #584a63;
+
+  --wound: #b3453f;
+  --river: #4f89b0;
+}
+
+/* One pixel is one pixel, everywhere inside the shell. */
+.vz-pixel-shell,
+.vz-pixel-shell * {
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+.vz-pixel-shell canvas {
+  image-rendering: pixelated;
+}

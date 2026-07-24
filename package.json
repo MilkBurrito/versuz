@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:bible": "node scripts/gen-bible.mjs"
+    "gen:bible": "node scripts/gen-bible.mjs",
+    "art:placeholders": "node scripts/gen-placeholder-art.mjs",
+    "art:normalize": "node scripts/normalize-art.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",
@@ -22,12 +24,14 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "jsdom": "^29.1.1",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.8"

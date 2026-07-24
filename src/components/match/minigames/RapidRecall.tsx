@@ -4,6 +4,7 @@
 // Normalized comparison with minor-typo tolerance (config).
 
 import { useState } from "react";
+import { LORE } from "@/lore/strings";
 import type { MinigameRound } from "@/lib/engine/match";
 import { rapidRecallMatches } from "@/lib/engine/minigames";
 import { normalizeWord } from "@/lib/engine/text";
@@ -63,12 +64,12 @@ export function RapidRecall({
       />
       {wrong && (
         <p className="mt-2 text-center text-[12px] font-bold text-bad">
-          Not quite — small typos are forgiven, missing words are not.
+          {LORE.match.rapidWrong}
         </p>
       )}
       {hintWord && (
         <p className="mt-2 text-center text-[13px] font-bold text-gold-deep">
-          Next word: <span className="font-serif text-[15px]">{hintWord}</span>
+          {LORE.match.rapidNext} <span className="font-serif text-[15px]">{hintWord}</span>
         </p>
       )}
       <div className="pt-4">

@@ -4,6 +4,7 @@
 // out-of-place words to swap them back, then Check. (MVP zero-data tier.)
 
 import { useState } from "react";
+import { LORE } from "@/lore/strings";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildSpotTheLie } from "@/lib/engine/minigames";
 import { CheckRow, ChunkContext } from "./shared";
@@ -86,7 +87,7 @@ function SpotTheLieBoard({
           ))}
         </p>
         <p className="mt-3 text-[11px] font-bold text-ink-faint">
-          Two words were swapped. Tap them both to swap them back.
+          {LORE.match.spotHelp}
         </p>
       </div>
       <CheckRow

@@ -1,11 +1,33 @@
-// Verse text access. Loads the compact id→text map per translation on demand
-// (generated from the verified datasets — text is never constructed in code),
-// and joins range ids from their member verses.
+// Verse text access. Local translations load the compact id→text map on
+// demand (generated from the verified datasets — text is never constructed in
+// code) and join range ids from member verses. Licensed translations
+// (NLT/NIV/NASB/ESV) fetch through the server proxy — same contract, never
+// generated, keys never here.
 
 import { memberVerseIds } from "@/lib/refs";
 import type { TranslationCode } from "@/config/game";
+import { isApiTranslation } from "@/lib/bible/translations";
 
 const cache = new Map<string, Promise<Record<string, string>>>();
+const apiVerseCache = new Map<string, Promise<string>>();
+
+function fetchApiVerse(id: string, translation: TranslationCode): Promise<string> {
+  const key = `${translation}:${id}`;
+  let p = apiVerseCache.get(key);
+  if (!p) {
+    p = fetch(`/api/verse?translation=${translation}&ref=${encodeURIComponent(id)}`).then(
+      async (r) => {
+        if (!r.ok) throw new Error(`Verse fetch failed for ${translation} (${r.status})`);
+        const j = (await r.json()) as { text: string };
+        return j.text;
+      },
+    );
+    // A failed fetch must not poison the session cache.
+    p.catch(() => apiVerseCache.delete(key));
+    apiVerseCache.set(key, p);
+  }
+  return p;
+}
 
 function loadMap(translation: TranslationCode): Promise<Record<string, string>> {
   const key = translation.toLowerCase();
@@ -25,6 +47,7 @@ export async function getVerseText(
   id: string,
   translation: TranslationCode,
 ): Promise<string> {
+  if (isApiTranslation(translation)) return fetchApiVerse(id, translation);
   const map = await loadMap(translation);
   const parts = memberVerseIds(id).map((vid) => {
     const t = map[vid];

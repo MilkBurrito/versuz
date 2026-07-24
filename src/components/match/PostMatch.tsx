@@ -10,6 +10,7 @@ import { GAME } from "@/config/game";
 import type { MatchSession } from "@/state/store";
 import { useApp } from "@/state/store";
 import { displayRef } from "@/lib/refs";
+import { LORE } from "@/lore/strings";
 import { levelProgress } from "@/lib/engine/mastery";
 import { Button } from "@/components/ui/Button";
 import { XPBar } from "@/components/ui/Bars";
@@ -62,14 +63,16 @@ export function PostMatch({ match }: { match: MatchSession }) {
             </div>
           </div>
           <h1 className="mt-4 text-[30px] font-extrabold text-ink">
-            {match.plan.isBoss ? `${match.bossName} falls.` : "Nailed it."}
+            {match.plan.isBoss
+              ? LORE.postMatch.bossVictoryTitle(match.bossName ?? "The Stronghold")
+              : LORE.postMatch.victoryTitle}
           </h1>
           <p className="mt-1 text-[15px] text-ink-soft">
-            {match.plan.isBoss ? "The Word did the work." : "…somehow."}
+            {match.plan.isBoss ? LORE.postMatch.bossVictorySub : LORE.postMatch.victorySub}
           </p>
           {settle.xp.perfectBonus > 0 && (
             <span className="mt-3 rounded-full bg-gold-wash px-3 py-1 text-[12px] font-bold text-gold-deep">
-              ✦ flawless
+              {LORE.postMatch.flawless}
             </span>
           )}
         </div>
@@ -79,7 +82,7 @@ export function PostMatch({ match }: { match: MatchSession }) {
         <div className="vz-rise w-full max-w-xs">
           <div className="text-[52px] font-extrabold text-gold-deep">+{settle.playerXpDelta}</div>
           <div className="text-[12px] font-bold uppercase tracking-widest text-ink-faint">
-            XP earned
+            {LORE.postMatch.faithfulnessEarned}
           </div>
           <div className="mt-5 rounded-2xl bg-white p-4 text-left text-[13px] shadow-sm">
             {match.plan.isBoss ? (
@@ -139,8 +142,8 @@ export function PostMatch({ match }: { match: MatchSession }) {
           <div className="mt-2 text-[44px] font-extrabold text-gold-deep">
             {settle.streak.count}
           </div>
-          <div className="text-[15px] font-bold text-ink">Day {settle.streak.count} streak</div>
-          <p className="mt-2 text-[12px] text-ink-faint">Secured for today.</p>
+          <div className="text-[15px] font-bold text-ink">{LORE.postMatch.vigilDay(settle.streak.count)}</div>
+          <p className="mt-2 text-[12px] text-ink-faint">{LORE.postMatch.vigilSecured}</p>
         </div>
       )}
 
@@ -155,7 +158,7 @@ export function PostMatch({ match }: { match: MatchSession }) {
       )}
 
       <span className="absolute bottom-8 left-0 right-0 text-[11px] font-bold uppercase tracking-widest text-ink-faint">
-        tap to continue
+        {LORE.postMatch.tapToContinue}
       </span>
     </button>
   );
@@ -200,8 +203,8 @@ function ChestStep({
         }}
       >
         <PixelIcon name="chest" size={72} alt="Reward chest" />
-        <span className="mt-2 text-[16px] font-extrabold text-ink">A reward dropped</span>
-        <span className="mt-1 text-[12px] text-ink-faint">Tap to open</span>
+        <span className="mt-2 text-[16px] font-extrabold text-ink">{LORE.postMatch.chestDropped}</span>
+        <span className="mt-1 text-[12px] text-ink-faint">{LORE.postMatch.chestOpen}</span>
       </span>
     );
   }
@@ -240,23 +243,25 @@ function LossScreen({
         <SpriteAnimator sprite={hero.sprite} anim="hit" size={hero.battleSize} playKey={1} />
       </div>
       <h1 className="mt-4 text-[24px] font-extrabold text-ink">
-        {match.plan.isBoss ? `${match.bossName} held the field.` : "The demon won that round."}
+        {match.plan.isBoss
+          ? LORE.postMatch.bossLossTitle(match.bossName ?? "The Darkness")
+          : LORE.postMatch.lossTitle}
       </h1>
-      <p className="mt-1 text-[14px] text-ink-soft">Sharpen the blade and go again.</p>
+      <p className="mt-1 text-[14px] text-ink-soft">{LORE.postMatch.lossSub}</p>
       <div className="mt-5 space-y-1 text-[12px] font-bold">
         <p className="text-ink-faint">
-          +{match.settle?.playerXpDelta ?? GAME.xp.LOSS_CONSOLATION_PLAYER_XP} XP (player only)
+          {LORE.postMatch.lossConsolation(match.settle?.playerXpDelta ?? GAME.xp.LOSS_CONSOLATION_PLAYER_XP)}
         </p>
-        <p className="text-ink-faint">No mastery progress this time.</p>
-        {match.settle?.streak.firstMatchToday && <p className="text-ok">Streak kept ✓</p>}
+        <p className="text-ink-faint">{LORE.postMatch.lossNoMastery}</p>
+        {match.settle?.streak.firstMatchToday && <p className="text-ok">{LORE.postMatch.vigilKept}</p>}
       </div>
       <div className="mt-7 flex gap-3">
         {match.tileId && (
           <Button variant="outline" onClick={onRetry} disabled={!hasEnergy}>
-            Retry · ⚡{GAME.energy.COST_PER_MATCH}
+            {LORE.postMatch.retry} · ⚡{GAME.energy.COST_PER_MATCH}
           </Button>
         )}
-        <Button onClick={onHome}>Home</Button>
+        <Button onClick={onHome}>{LORE.postMatch.home}</Button>
       </div>
     </div>
   );

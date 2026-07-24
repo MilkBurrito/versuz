@@ -6,14 +6,16 @@
 // Delete · Practice (+live XP) · Translation, plus Edit verse range (rev 5).
 
 import { useEffect, useMemo, useState } from "react";
-import { GAME, TRANSLATIONS, type TranslationCode } from "@/config/game";
+import { GAME, type TranslationCode } from "@/config/game";
 import type { Tile } from "@/data/types";
 import { getVerseText } from "@/lib/bible/client";
-import { AVAILABLE_TRANSLATIONS } from "@/lib/bible/books.generated";
+import { useAvailableTranslations } from "@/lib/bible/available";
+import { ATTRIBUTION, ESV_LINK } from "@/lib/bible/translations";
 import { energyAt, secondsToNextEnergy } from "@/lib/engine/energy";
 import { levelFromXp, levelProgress } from "@/lib/engine/mastery";
 import { displayRef, parseRef, versesInChapter } from "@/lib/refs";
 import { previewPracticeXp, useApp } from "@/state/store";
+import { LORE } from "@/lore/strings";
 import { XPBar } from "@/components/ui/Bars";
 import { Button } from "@/components/ui/Button";
 import { GemJourney } from "@/components/ui/GemJourney";
@@ -61,10 +63,8 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
       ),
     [snapshot, tile.verseId],
   );
-  const offeredTranslations = TRANSLATIONS.filter(
-    (tr) =>
-      (AVAILABLE_TRANSLATIONS as readonly string[]).includes(tr) && !heldTranslations.has(tr),
-  );
+  const available = useAvailableTranslations();
+  const offeredTranslations = available.filter((tr) => !heldTranslations.has(tr));
 
   const ref = parseRef(tile.verseId);
   const chapterHasRange = versesInChapter(ref.book, ref.chapter) > 1;
@@ -99,18 +99,29 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
       <div className="w-full flex-1 overflow-y-auto pb-4 pt-10">
         <div className="mx-auto w-full max-w-xl px-7">
           {verseText === null ? (
-            <p className="text-center text-sm text-ink-faint">Loading…</p>
+            <p className="text-center text-sm text-ink-faint">{LORE.preMatch.loading}</p>
           ) : (
             <p className="font-serif text-[22px] leading-relaxed text-ink">
               &ldquo;{verseText}&rdquo;
+            </p>
+          )}
+          {ATTRIBUTION[tile.translation] && (
+            <p className="mt-4 text-center text-[10px] leading-relaxed text-ink-faint">
+              {tile.translation === "ESV" ? "(ESV) " : ""}
+              {ATTRIBUTION[tile.translation]}{" "}
+              {tile.translation === "ESV" && (
+                <a href={ESV_LINK} target="_blank" rel="noreferrer" className="underline">
+                  esv.org
+                </a>
+              )}
             </p>
           )}
           <div className="mx-auto mt-8 max-w-xs">
             <XPBar fraction={levelProgress(tile.verseXp, tile.masteryGoal)} height={10} />
             <p className="mt-1.5 text-center text-[11px] font-bold text-ink-faint">
               {level >= 7
-                ? "Mastered"
-                : `Level ${level} · ${tile.verseXp} / ${tile.masteryGoal} XP to mastery`}
+                ? LORE.preMatch.mastered
+                : LORE.preMatch.progress(level, tile.verseXp, tile.masteryGoal)}
             </p>
           </div>
         </div>
@@ -141,11 +152,11 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
               }}
             >
               {noEnergy ? (
-                `No energy${regenEta !== null ? ` · +1 in ${formatEta(regenEta)}` : ""}`
+                LORE.preMatch.lanternSpent(regenEta !== null ? formatEta(regenEta) : null)
               ) : (
                 <>
                   <PixelIcon name="slot-weapon" size={20} className="mr-1.5 align-[-4px]" alt="" />
-                  Practice · +{xpPreview} XP
+                  {LORE.preMatch.start(xpPreview)}
                 </>
               )}
             </Button>
@@ -171,7 +182,7 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
               className="mt-2.5 w-full text-center text-[12px] font-bold text-ink-soft underline-offset-2 active:underline"
               onClick={() => setRangePickerOpen(true)}
             >
-              ✎ Edit verse range
+              {LORE.preMatch.editRange}
             </button>
           )}
         </div>
@@ -219,15 +230,15 @@ function ConfirmDialog({
   const copy =
     confirm.kind === "delete"
       ? {
-          title: `Delete ${displayRef(tile.verseId)}?`,
-          body: "This tile and its progress are removed. The verse stays in Explore.",
-          action: "Delete",
+          title: LORE.preMatch.deleteTitle(displayRef(tile.verseId)),
+          body: LORE.preMatch.deleteBody,
+          action: LORE.preMatch.deleteAction,
           danger: true,
         }
       : {
-          title: `Switch to ${confirm.to}?`,
-          body: "The words change with the translation, so this tile's progress resets to Level 1. To keep both, add the verse again in the other translation instead.",
-          action: "Switch",
+          title: LORE.preMatch.switchTitle(confirm.to),
+          body: LORE.preMatch.switchBody,
+          action: LORE.preMatch.switchAction,
           danger: false,
         };
 

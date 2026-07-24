@@ -6,6 +6,7 @@
 // Non-punishing: a miss only forfeits the flawless bonus.
 
 import { useState } from "react";
+import { LORE } from "@/lore/strings";
 import { displayRef, referenceAnswerMatches } from "@/lib/refs";
 import { CheckButton } from "@/components/ui/Button";
 
@@ -27,7 +28,7 @@ export function Finisher({
   return (
     <div className="flex h-full flex-col">
       <p className="mb-4 text-center text-[14px] font-bold text-ink-soft">
-        Finishing blow — name the verse.
+        {LORE.match.finisherPrompt}
       </p>
       {mode === "choice" ? (
         <ChoiceFinisher verseId={verseId} onFinish={onFinish} />

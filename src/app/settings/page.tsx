@@ -5,9 +5,10 @@
 // rows so the screen reads complete. Dev reset stays at the bottom.
 
 import { useEffect } from "react";
-import { TRANSLATIONS, type TranslationCode } from "@/config/game";
+import { LORE } from "@/lore/strings";
+import { type TranslationCode } from "@/config/game";
 import { resetLocalData } from "@/data/localApi";
-import { AVAILABLE_TRANSLATIONS } from "@/lib/bible/books.generated";
+import { useAvailableTranslations } from "@/lib/bible/available";
 import { isCloudMode } from "@/lib/supabase";
 import { useApp } from "@/state/store";
 import { BottomNav } from "@/components/ui/BottomNav";
@@ -16,6 +17,7 @@ import { AuthScreen } from "@/components/screens/AuthScreen";
 
 export default function SettingsPage() {
   const { ready, authRequired, accountEmail, snapshot, init, saveSettings, signOut } = useApp();
+  const available = useAvailableTranslations();
   useEffect(() => {
     void init();
   }, [init]);
@@ -30,9 +32,6 @@ export default function SettingsPage() {
   }
 
   const { user } = snapshot;
-  const available = TRANSLATIONS.filter((t) =>
-    (AVAILABLE_TRANSLATIONS as readonly string[]).includes(t),
-  );
 
   function update(partial: Partial<{ defaultTranslation: TranslationCode; streakVisuals: boolean; dailyGoal: 1 | 2 | 3 }>) {
     void saveSettings({
@@ -48,7 +47,7 @@ export default function SettingsPage() {
         <div className="mx-auto w-full max-w-xl">
           <div className="mb-4 flex items-center gap-2.5">
             <PixelIcon name="nav-settings" size={26} alt="" />
-            <h1 className="text-[20px] font-extrabold text-ink">Settings</h1>
+            <h1 className="text-[20px] font-extrabold text-ink">{LORE.screens.provisions.title}</h1>
           </div>
 
           <Section title="Verses">
@@ -107,6 +106,11 @@ export default function SettingsPage() {
 
           <Section title="About">
             <Row label="Help & FAQ" locked />
+            <Row label="Scripture copyright" hint="The translations carried here, and their keepers">
+              <a href="/copyright" className="text-[12px] font-bold text-gold-deep underline-offset-2 active:underline">
+                View
+              </a>
+            </Row>
             <Row label="Privacy & Terms" locked />
             <Row label="Versuz" hint="Battle the dark with the Word — v0.3 preview">
               <span />

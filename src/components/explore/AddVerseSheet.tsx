@@ -6,8 +6,8 @@
 // the button reflects it (§7 uniqueness).
 
 import { useEffect, useState } from "react";
-import { TRANSLATIONS, type ThemeTag, type TranslationCode } from "@/config/game";
-import { AVAILABLE_TRANSLATIONS } from "@/lib/bible/books.generated";
+import { type ThemeTag, type TranslationCode } from "@/config/game";
+import { useAvailableTranslations } from "@/lib/bible/available";
 import { getVerseText } from "@/lib/bible/client";
 import { displayRef } from "@/lib/refs";
 import { useApp } from "@/state/store";
@@ -25,9 +25,7 @@ export function AddVerseSheet({
   onClose: () => void;
 }) {
   const { snapshot, addTile } = useApp();
-  const available = TRANSLATIONS.filter((t) =>
-    (AVAILABLE_TRANSLATIONS as readonly string[]).includes(t),
-  );
+  const available = useAvailableTranslations();
   const [translation, setTranslation] = useState<TranslationCode>(() => {
     const pref = snapshot?.user.defaultTranslation ?? "KJV";
     return available.includes(pref) ? pref : (available[0] ?? "KJV");

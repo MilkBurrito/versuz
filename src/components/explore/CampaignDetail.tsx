@@ -74,7 +74,7 @@ export function CampaignDetail({
               disabled={busy}
               className="rounded-full border border-white/40 px-3 py-1.5 text-[11px] font-extrabold text-white active:bg-white/10"
             >
-              Add campaign
+              Take up all
             </button>
           )}
         </div>
@@ -147,15 +147,15 @@ export function CampaignDetail({
                 </div>
                 <div>
                   <p className={`text-[14px] font-extrabold ${bossUnlocked ? "text-gold-deep" : "text-ink-faint"}`}>
-                    Boss · {campaign.bossName}
+                    Stronghold · {campaign.bossName}
                   </p>
                   <p className="text-[11px] font-bold text-ink-faint">
                     {cleared === "cleared" || cleared === "mastered"
-                      ? "Cleared ✓ — rematch any time"
+                      ? "Broken ✓ — face it again any time"
                       : bossUnlocked
                         ? "The gate is open."
                         : !fullyAdded
-                          ? "Add the whole campaign to face the boss"
+                          ? "Take up the whole settlement to face its Stronghold"
                           : `${atL3.length}/${campaign.verseIds.length} at L${GAME.boss.UNLOCK_MIN_LEVEL}+ — keep practicing`}
                   </p>
                 </div>

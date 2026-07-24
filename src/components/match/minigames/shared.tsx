@@ -5,9 +5,10 @@
 // context block (rev 1: parts 2+ always show where the verse left off), and
 // the hint affordance (reveal the next correct answer for an energy point).
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { GAME } from "@/config/game";
 import { useApp } from "@/state/store";
+import { LORE } from "@/lore/strings";
 import type { Word } from "@/lib/engine/text";
 import { CheckButton } from "@/components/ui/Button";
 import { PixelIcon } from "@/components/ui/icons";
@@ -98,9 +99,16 @@ export function usePlacement(answerNorms: string[], bankWords: string[]) {
 }
 
 /**
- * The hint affordance: reveal the next correct answer for an energy point.
- * The energy spend goes through the authority (same pool as match starts);
- * `onHint` runs only when it was affordable.
+ * Waystation drills wrap minigames in this context: Counsel is freely given
+ * there (zero economy — nothing at the Waystation costs or grants anything).
+ */
+export const FreeDrillContext = createContext(false);
+
+/**
+ * The Counsel affordance: reveal the next correct answer for a lantern flame.
+ * In a real Stand the spend goes through the authority (same pool as match
+ * starts) and `onHint` runs only when it was affordable; in a free drill it
+ * simply runs.
  */
 export function HintButton({
   onHint,
@@ -110,11 +118,16 @@ export function HintButton({
   disabled?: boolean;
 }) {
   const { snapshot, spendHint } = useApp();
+  const free = useContext(FreeDrillContext);
   const [busy, setBusy] = useState(false);
   const energy = snapshot?.user.energy.current ?? 0;
-  const canAfford = energy >= GAME.hints.ENERGY_COST;
+  const canAfford = free || energy >= GAME.hints.ENERGY_COST;
   async function click() {
     if (busy) return;
+    if (free) {
+      onHint();
+      return;
+    }
     setBusy(true);
     try {
       if (await spendHint()) onHint();
@@ -126,18 +139,20 @@ export function HintButton({
     <button
       onClick={() => void click()}
       disabled={disabled || !canAfford || busy}
-      title={canAfford ? `Reveal the next answer (−${GAME.hints.ENERGY_COST} energy)` : "Out of energy"}
+      title={canAfford ? LORE.match.counselTitle(GAME.hints.ENERGY_COST) : LORE.match.counselEmpty}
       className={`flex shrink-0 items-center justify-center gap-1.5 rounded-2xl border-2 px-4 text-[13px] font-extrabold uppercase tracking-wide transition-all ${
         disabled || !canAfford || busy
           ? "border-shell bg-shell text-ink-faint"
           : "border-shell-deep/50 bg-white text-ink-soft active:bg-shell"
       }`}
     >
-      Hint
-      <span className="flex items-center gap-0.5 text-[12px] normal-case tracking-normal">
-        −{GAME.hints.ENERGY_COST}
-        <PixelIcon name="energy" size={15} alt="energy" />
-      </span>
+      {LORE.match.counsel}
+      {!free && (
+        <span className="flex items-center gap-0.5 text-[12px] normal-case tracking-normal">
+          −{GAME.hints.ENERGY_COST}
+          <PixelIcon name="energy" size={15} alt="lantern" />
+        </span>
+      )}
     </button>
   );
 }

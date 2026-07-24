@@ -10,3 +10,6 @@ npm-debug.log*
 next-env.d.ts
 # NOTE: public/bible/*.json IS committed — Vercel builds can't reach the raw
 # datasets (../data/bible lives outside this repo). Regenerate via gen:bible.
+# pixel-art pipeline working dirs (raw drops + review output)
+art-inbox/
+art-normalized/

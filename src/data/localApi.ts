@@ -523,6 +523,13 @@ export class LocalGameApi implements GameApi {
     this.save();
   }
 
+  /** Presentational write: first-run induction into the Guard is complete. */
+  async completeOnboarding(): Promise<void> {
+    const d = this.get();
+    d.user.onboardingCompleted = true;
+    this.save();
+  }
+
   /** Presentational write: character identity (name + sprite). */
   async saveProfile(profile: { displayName: string; characterSprite: string }): Promise<void> {
     const d = this.get();

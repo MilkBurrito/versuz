@@ -79,6 +79,7 @@ interface AppState {
   setTileRange(tileId: string, verseStart: number, verseEnd: number): Promise<void>;
   equip(slot: keyof GameSnapshot["user"]["equipped"], itemId: string | null): Promise<void>;
   saveCharacter(displayName: string, characterSprite: string): Promise<void>;
+  completeOnboarding(): Promise<void>;
   saveSettings(settings: {
     defaultTranslation: GameSnapshot["user"]["defaultTranslation"];
     streakVisuals: boolean;
@@ -322,6 +323,11 @@ export const useApp = create<AppState>((set, get) => ({
     // Presentational-only write (client-updatable columns per the schema).
     snap.user.equipped = { ...snap.user.equipped, [slot]: itemId };
     await (api() as LocalGameApi).saveEquipped?.(snap.user.equipped);
+    await get().refresh();
+  },
+
+  async completeOnboarding() {
+    await (api() as LocalGameApi).completeOnboarding?.();
     await get().refresh();
   },
 

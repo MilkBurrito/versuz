@@ -1,17 +1,19 @@
 "use client";
 
-// Four-tab bottom nav (v1.2 §13-B): Home · Explore · Shop · Settings.
-// Shop ships as a coming-soon stub; the gold dot marks it not-yet-live.
+// Four-tab bottom nav (v1.2 §13-B), spoken in the Kingdom's voice:
+// Kingdom · Settlements · Forge · Provisions. The Forge ships as a
+// coming-soon stub; the gold dot marks it not-yet-lit.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LORE } from "@/lore/strings";
 import { PixelIcon } from "@/components/ui/icons";
 
 const TABS = [
-  { href: "/", label: "Home", icon: "nav-home" },
-  { href: "/explore", label: "Explore", icon: "nav-explore" },
-  { href: "/shop", label: "Shop", icon: "nav-shop", soon: true },
-  { href: "/settings", label: "Settings", icon: "nav-settings" },
+  { href: "/", label: LORE.nav.home, icon: "nav-home" },
+  { href: "/explore", label: LORE.nav.explore, icon: "nav-explore" },
+  { href: "/shop", label: LORE.nav.shop, icon: "nav-shop", soon: true },
+  { href: "/settings", label: LORE.nav.settings, icon: "nav-settings" },
 ] as const;
 
 export function BottomNav() {

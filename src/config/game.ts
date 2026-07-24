@@ -159,7 +159,10 @@ export const GAME = {
 
 export type VerseLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
-export const TRANSLATIONS = ["KJV", "ASV", "WEB"] as const;
+// Local (committed, public-domain) + API-served (licensed, proxied through
+// /api/verse — enabled per deployment by server env keys; see
+// src/lib/bible/translations.ts).
+export const TRANSLATIONS = ["KJV", "ASV", "WEB", "NLT", "NIV", "NASB", "ESV"] as const;
 export type TranslationCode = (typeof TRANSLATIONS)[number];
 
 export const THEME_TAGS = [

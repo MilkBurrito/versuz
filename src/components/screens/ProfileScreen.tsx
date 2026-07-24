@@ -5,6 +5,7 @@
 // Badges derive from existing state — persistence arrives with Supabase wiring.
 
 import { GAME } from "@/config/game";
+import { LORE } from "@/lore/strings";
 import type { GameSnapshot } from "@/data/api";
 import { needsRefresh } from "@/lib/engine/mastery";
 import { playerLevelFromXp } from "@/lib/engine/playerLevel";
@@ -78,7 +79,7 @@ export function ProfileScreen({
   const totalPractices = tiles.reduce((n, t) => n + t.practiceCount, 0);
 
   return (
-    <OverlayShell title="Profile" onClose={onClose}>
+    <OverlayShell title={LORE.screens.standing.title} subtitle={LORE.screens.standing.subtitle} onClose={onClose}>
       {/* character */}
       <div className="flex flex-col items-center pb-2 pt-3">
         <SpriteAnimator sprite={character.sprite} anim="idle" size={Math.round(character.hubSize * 0.8)} />
@@ -94,7 +95,7 @@ export function ProfileScreen({
         </button>
       </div>
 
-      <SectionLabel>Badges</SectionLabel>
+      <SectionLabel>{LORE.screens.standing.deeds}</SectionLabel>
       {badges.length === 0 ? (
         <Card>
           <p className="text-[13px] text-ink-soft">Master a verse to earn your first badge.</p>
@@ -118,7 +119,7 @@ export function ProfileScreen({
         </div>
       )}
 
-      <SectionLabel>Mastered verses</SectionLabel>
+      <SectionLabel>{LORE.screens.standing.mastered}</SectionLabel>
       {mastered.length === 0 ? (
         <Card>
           <p className="text-[13px] text-ink-soft">
