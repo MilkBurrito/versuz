@@ -15,8 +15,7 @@ export default function CopyrightPage() {
       <div className="mx-auto max-w-xl">
         <h1 className="text-[20px] font-extrabold text-ink">Scripture copyright</h1>
         <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">
-          The Word carried in Versuz is quoted from the following translations, with gratitude
-          to the hands that kept them.
+          Versuz quotes Scripture from the following translations.
         </p>
 
         <section className="mt-6 space-y-4 text-[13px] leading-relaxed text-ink-soft">
@@ -63,7 +62,7 @@ export default function CopyrightPage() {
           href="/settings"
           className="mt-8 inline-block text-[13px] font-bold text-gold-deep underline-offset-2 hover:underline"
         >
-          ← Back to Provisions
+          ← Back to Settings
         </Link>
       </div>
     </main>

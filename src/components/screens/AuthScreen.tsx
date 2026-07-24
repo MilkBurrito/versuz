@@ -5,7 +5,7 @@
 // Apple/Google OAuth are a later pass (they need provider app registrations).
 
 import { useState } from "react";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { supabase } from "@/lib/supabase";
 import { useApp } from "@/state/store";
 import { Button } from "@/components/ui/Button";
@@ -32,7 +32,7 @@ export function AuthScreen() {
         if (error) throw error;
         if (!data.session) {
           // Email confirmation is on — the session arrives after they confirm.
-          setNotice(LORE.auth.checkEmail);
+          setNotice(TEXT.auth.checkEmail);
           setMode("signin");
           return;
         }
@@ -55,7 +55,7 @@ export function AuthScreen() {
           <PixelIcon name="nav-explore" size={56} alt="" />
           <h1 className="mt-3 text-[28px] font-extrabold text-ink">Versuz</h1>
           <p className="mt-1 text-[14px] font-bold text-ink-soft">
-            {LORE.auth.tagline}
+            {TEXT.auth.tagline}
           </p>
         </div>
 
@@ -63,8 +63,8 @@ export function AuthScreen() {
           <div className="mb-4 flex gap-1 rounded-xl bg-shell p-1">
             {(
               [
-                ["signin", LORE.auth.signIn],
-                ["signup", LORE.auth.createAccount],
+                ["signin", TEXT.auth.signIn],
+                ["signup", TEXT.auth.createAccount],
               ] as const
             ).map(([m, label]) => (
               <button
@@ -114,12 +114,12 @@ export function AuthScreen() {
             disabled={busy || !email.trim() || password.length < 6}
             onClick={submit}
           >
-            {busy ? "…" : mode === "signup" ? LORE.auth.createAccount : LORE.auth.signIn}
+            {busy ? "…" : mode === "signup" ? TEXT.auth.createAccount : TEXT.auth.signIn}
           </Button>
         </div>
 
         <p className="mt-4 text-center text-[11px] font-bold text-ink-faint">
-          {LORE.auth.footer}
+          {TEXT.auth.footer}
         </p>
       </div>
     </main>

@@ -5,7 +5,7 @@
 // rows so the screen reads complete. Dev reset stays at the bottom.
 
 import { useEffect } from "react";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { type TranslationCode } from "@/config/game";
 import { resetLocalData } from "@/data/localApi";
 import { useAvailableTranslations } from "@/lib/bible/available";
@@ -47,7 +47,7 @@ export default function SettingsPage() {
         <div className="mx-auto w-full max-w-xl">
           <div className="mb-4 flex items-center gap-2.5">
             <PixelIcon name="nav-settings" size={26} alt="" />
-            <h1 className="text-[20px] font-extrabold text-ink">{LORE.screens.provisions.title}</h1>
+            <h1 className="text-[20px] font-extrabold text-ink">{TEXT.screens.settings.title}</h1>
           </div>
 
           <Section title="Verses">
@@ -106,7 +106,7 @@ export default function SettingsPage() {
 
           <Section title="About">
             <Row label="Help & FAQ" locked />
-            <Row label="Scripture copyright" hint="The translations carried here, and their keepers">
+            <Row label="Scripture copyright" hint="Translations used, and their publishers">
               <a href="/copyright" className="text-[12px] font-bold text-gold-deep underline-offset-2 active:underline">
                 View
               </a>

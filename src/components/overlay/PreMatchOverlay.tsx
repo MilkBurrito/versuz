@@ -15,7 +15,7 @@ import { energyAt, secondsToNextEnergy } from "@/lib/engine/energy";
 import { levelFromXp, levelProgress } from "@/lib/engine/mastery";
 import { displayRef, parseRef, versesInChapter } from "@/lib/refs";
 import { previewPracticeXp, useApp } from "@/state/store";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { XPBar } from "@/components/ui/Bars";
 import { Button } from "@/components/ui/Button";
 import { GemJourney } from "@/components/ui/GemJourney";
@@ -99,7 +99,7 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
       <div className="w-full flex-1 overflow-y-auto pb-4 pt-10">
         <div className="mx-auto w-full max-w-xl px-7">
           {verseText === null ? (
-            <p className="text-center text-sm text-ink-faint">{LORE.preMatch.loading}</p>
+            <p className="text-center text-sm text-ink-faint">{TEXT.preMatch.loading}</p>
           ) : (
             <p className="font-serif text-[22px] leading-relaxed text-ink">
               &ldquo;{verseText}&rdquo;
@@ -120,8 +120,8 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
             <XPBar fraction={levelProgress(tile.verseXp, tile.masteryGoal)} height={10} />
             <p className="mt-1.5 text-center text-[11px] font-bold text-ink-faint">
               {level >= 7
-                ? LORE.preMatch.mastered
-                : LORE.preMatch.progress(level, tile.verseXp, tile.masteryGoal)}
+                ? TEXT.preMatch.mastered
+                : TEXT.preMatch.progress(level, tile.verseXp, tile.masteryGoal)}
             </p>
           </div>
         </div>
@@ -152,11 +152,11 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
               }}
             >
               {noEnergy ? (
-                LORE.preMatch.lanternSpent(regenEta !== null ? formatEta(regenEta) : null)
+                TEXT.preMatch.noEnergy(regenEta !== null ? formatEta(regenEta) : null)
               ) : (
                 <>
                   <PixelIcon name="slot-weapon" size={20} className="mr-1.5 align-[-4px]" alt="" />
-                  {LORE.preMatch.start(xpPreview)}
+                  {TEXT.preMatch.start(xpPreview)}
                 </>
               )}
             </Button>
@@ -182,7 +182,7 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
               className="mt-2.5 w-full text-center text-[12px] font-bold text-ink-soft underline-offset-2 active:underline"
               onClick={() => setRangePickerOpen(true)}
             >
-              {LORE.preMatch.editRange}
+              {TEXT.preMatch.editRange}
             </button>
           )}
         </div>
@@ -230,15 +230,15 @@ function ConfirmDialog({
   const copy =
     confirm.kind === "delete"
       ? {
-          title: LORE.preMatch.deleteTitle(displayRef(tile.verseId)),
-          body: LORE.preMatch.deleteBody,
-          action: LORE.preMatch.deleteAction,
+          title: TEXT.preMatch.deleteTitle(displayRef(tile.verseId)),
+          body: TEXT.preMatch.deleteBody,
+          action: TEXT.preMatch.deleteAction,
           danger: true,
         }
       : {
-          title: LORE.preMatch.switchTitle(confirm.to),
-          body: LORE.preMatch.switchBody,
-          action: LORE.preMatch.switchAction,
+          title: TEXT.preMatch.switchTitle(confirm.to),
+          body: TEXT.preMatch.switchBody,
+          action: TEXT.preMatch.switchAction,
           danger: false,
         };
 

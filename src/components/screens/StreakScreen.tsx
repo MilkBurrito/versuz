@@ -3,7 +3,7 @@
 // Streak screen (from the status bar flame): current + longest streak, the
 // weekly auto-freeze, milestone markers, and how streaks work.
 
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import type { UserState } from "@/data/types";
 import { PixelIcon } from "@/components/ui/icons";
 import { Card, InfoRow, OverlayShell, SectionLabel } from "@/components/screens/OverlayShell";
@@ -12,14 +12,14 @@ const MILESTONES = [7, 30, 100, 365];
 
 export function StreakScreen({ user, onClose }: { user: UserState; onClose: () => void }) {
   return (
-    <OverlayShell title={LORE.screens.vigil.title} subtitle={LORE.screens.vigil.subtitle} onClose={onClose}>
+    <OverlayShell title={TEXT.screens.streak.title} subtitle={TEXT.screens.streak.subtitle} onClose={onClose}>
       <div className="flex flex-col items-center py-4">
-        <PixelIcon name="streak" size={88} alt="Streak flame" />
+        <PixelIcon name="lantern" size={88} alt="Streak lantern" />
         <div className="mt-1 text-[56px] font-extrabold leading-none text-gold-deep">
           {user.currentStreak}
         </div>
         <div className="mt-1 text-[14px] font-bold text-ink">
-          {LORE.screens.vigil.unit(user.currentStreak)}
+          {TEXT.screens.streak.unit(user.currentStreak)}
         </div>
       </div>
 
@@ -31,7 +31,7 @@ export function StreakScreen({ user, onClose }: { user: UserState; onClose: () =
             return (
               <div key={m} className="flex flex-col items-center gap-1">
                 <PixelIcon
-                  name="streak"
+                  name="lantern"
                   size={34}
                   className={lit ? "" : "opacity-30 grayscale"}
                   alt=""
@@ -47,26 +47,26 @@ export function StreakScreen({ user, onClose }: { user: UserState; onClose: () =
 
       <SectionLabel>Details</SectionLabel>
       <Card className="divide-y divide-black/5">
-        <InfoRow label={LORE.screens.vigil.longest} value={`${user.longestStreak} nights`} />
+        <InfoRow label={TEXT.screens.streak.longest} value={`${user.longestStreak} days`} />
         <InfoRow
-          label={LORE.screens.vigil.grace}
+          label={TEXT.screens.streak.freeze}
           value={
             user.streakFreezeAvailable ? (
               <span className="flex items-center gap-1.5 text-ok">
-                <PixelIcon name="freeze" size={20} alt="" /> {LORE.screens.vigil.graceReady}
+                <PixelIcon name="freeze" size={20} alt="" /> {TEXT.screens.streak.freezeReady}
               </span>
             ) : (
-              <span className="text-ink-faint">{LORE.screens.vigil.graceUsed}</span>
+              <span className="text-ink-faint">{TEXT.screens.streak.freezeUsed}</span>
             )
           }
         />
         <InfoRow
-          label={LORE.screens.vigil.today}
+          label={TEXT.screens.streak.today}
           value={
             user.lastStreakDate === todayStr() ? (
-              <span className="text-ok">{LORE.screens.vigil.todaySecured}</span>
+              <span className="text-ok">{TEXT.screens.streak.todaySecured}</span>
             ) : (
-              <span className="text-gold-deep">{LORE.screens.vigil.todayPending}</span>
+              <span className="text-gold-deep">{TEXT.screens.streak.todayPending}</span>
             )
           }
         />
@@ -75,7 +75,7 @@ export function StreakScreen({ user, onClose }: { user: UserState; onClose: () =
       <SectionLabel>How it works</SectionLabel>
       <Card>
         <ul className="list-disc space-y-1.5 pl-4 text-[13px] leading-relaxed text-ink-soft">
-          {LORE.screens.vigil.how.map((line) => (
+          {TEXT.screens.streak.how.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>

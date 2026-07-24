@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { GAME } from "@/config/game";
 import { energyAt, secondsToNextEnergy } from "@/lib/engine/energy";
 import type { UserState } from "@/data/types";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { PixelIcon } from "@/components/ui/icons";
 import { characterById } from "@/components/sprites/SpriteAnimator";
 
@@ -47,21 +47,21 @@ export function StatusBar({
           />
         </button>
         <Stat
-          icon={<PixelIcon name="streak" size={22} />}
+          icon={<PixelIcon name="lantern" size={22} />}
           value={user.streakVisuals ? user.currentStreak : "—"}
-          label={LORE.status.vigil}
+          label={TEXT.status.streak}
           onTap={() => onOpen?.("streak")}
         />
         <Stat
           icon={<PixelIcon name="gem" size={22} />}
           value={user.coins}
-          label={LORE.status.embers}
+          label={TEXT.status.embers}
           onTap={() => onOpen?.("gems")}
         />
         <Stat
           icon={<PixelIcon name="energy" size={22} />}
           value={`${energy.current}`}
-          label={toNext !== null ? LORE.status.lanternEta(formatEta(toNext)) : LORE.status.lantern}
+          label={toNext !== null ? TEXT.status.energyEta(formatEta(toNext)) : TEXT.status.energy}
           dim={energy.current === 0}
           onTap={() => onOpen?.("energy")}
         />

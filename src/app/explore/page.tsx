@@ -48,7 +48,7 @@ export default function ExplorePage() {
         <div className="flex border-b border-black/5 bg-white">
           {(
             [
-              ["campaigns", "Settlements"],
+              ["campaigns", "Campaigns"],
               ["browse", "Browse"],
               ["search", "Search"],
             ] as const

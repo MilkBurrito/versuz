@@ -6,14 +6,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { PixelIcon } from "@/components/ui/icons";
 
 const TABS = [
-  { href: "/", label: LORE.nav.home, icon: "nav-home" },
-  { href: "/explore", label: LORE.nav.explore, icon: "nav-explore" },
-  { href: "/shop", label: LORE.nav.shop, icon: "nav-shop", soon: true },
-  { href: "/settings", label: LORE.nav.settings, icon: "nav-settings" },
+  { href: "/", label: TEXT.nav.home, icon: "nav-home" },
+  { href: "/explore", label: TEXT.nav.explore, icon: "nav-explore" },
+  { href: "/shop", label: TEXT.nav.shop, icon: "nav-shop", soon: true },
+  { href: "/settings", label: TEXT.nav.settings, icon: "nav-settings" },
 ] as const;
 
 export function BottomNav() {

@@ -5,14 +5,7 @@ import { matchXp, isRested, diminishingModifier } from "@/lib/engine/xp";
 import { energyAt, secondsToNextEnergy, spendEnergy } from "@/lib/engine/energy";
 import { chunkCount, splitVerseText, splitWords } from "@/lib/engine/split";
 import { tokenize, normalizeText } from "@/lib/engine/text";
-import {
-  buildBossPlan,
-  buildMatchPlan,
-  plannedRoundCount,
-  playerHpForLevel,
-  sequenceForLevel,
-  SPLITTABLE,
-} from "@/lib/engine/match";
+import { buildBossPlan, buildMatchPlan, plannedRoundCount, playerHpForLevel, sequenceForLevel, SPLITTABLE, buildTrainingPlan, type MinigameType } from "@/lib/engine/match";
 import {
   buildFadingWords,
   buildMysteryWord,
@@ -333,5 +326,29 @@ describe("player level (§9.8)", () => {
 describe("text normalization", () => {
   it("auto-handles capitalization/punctuation", () => {
     expect(normalizeText("For God so loved the world,")).toBe("for god so loved the world");
+  });
+});
+
+describe("training ground plans", () => {
+  const verse = "For God so loved the world that he gave his only begotten Son";
+
+  it("runs the same number of rounds as a real match at that level", () => {
+    const real = buildMatchPlan("JHN.3.16", verse, 3);
+    const training = buildTrainingPlan("JHN.3.16", verse, 3, ["word_bank"]);
+    expect(training.rounds.length).toBe(real.rounds.length);
+  });
+
+  it("only uses the games the player picked", () => {
+    const chosen: MinigameType[] = ["word_bank", "mystery_word"];
+    const plan = buildTrainingPlan("JHN.3.16", verse, 5, chosen);
+    expect(plan.rounds.length).toBeGreaterThan(0);
+    for (const r of plan.rounds) expect(chosen).toContain(r.type);
+  });
+
+  it("cycles through every chosen game", () => {
+    const chosen: MinigameType[] = ["word_bank", "mystery_word", "rapid_recall"];
+    const plan = buildTrainingPlan("JHN.3.16", verse, 7, chosen);
+    const used = new Set(plan.rounds.map((r) => r.type));
+    for (const g of chosen) expect(used.has(g)).toBe(true);
   });
 });

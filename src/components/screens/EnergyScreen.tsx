@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { GAME } from "@/config/game";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import type { UserState } from "@/data/types";
 import { energyAt, secondsToNextEnergy } from "@/lib/engine/energy";
 import { PixelIcon } from "@/components/ui/icons";
@@ -24,7 +24,7 @@ export function EnergyScreen({ user, onClose }: { user: UserState; onClose: () =
   const regenHours = GAME.energy.REGEN_SECONDS / 3600;
 
   return (
-    <OverlayShell title={LORE.screens.lantern.title} subtitle={LORE.screens.lantern.subtitle} onClose={onClose}>
+    <OverlayShell title={TEXT.screens.energy.title} subtitle={TEXT.screens.energy.subtitle} onClose={onClose}>
       <div className="flex flex-col items-center py-4">
         <div className="flex items-end gap-1.5">
           {Array.from({ length: GAME.energy.MAX }).map((_, i) => (
@@ -41,22 +41,25 @@ export function EnergyScreen({ user, onClose }: { user: UserState; onClose: () =
           {energy.current} / {GAME.energy.MAX}
         </div>
         <div className="mt-1.5 text-[13px] font-bold text-ink-soft">
-          {toNext === null ? LORE.screens.lantern.full : LORE.screens.lantern.next(formatEta(toNext))}
+          {toNext === null ? TEXT.screens.energy.full : TEXT.screens.energy.next(formatEta(toNext))}
         </div>
       </div>
 
-      <SectionLabel>{LORE.screens.lantern.rulesHeading}</SectionLabel>
+      <SectionLabel>{TEXT.screens.energy.rulesHeading}</SectionLabel>
       <Card className="divide-y divide-black/5">
-        <InfoRow label={LORE.screens.lantern.costLabel} value={LORE.screens.lantern.costValue(GAME.energy.COST_PER_MATCH)} />
-        <InfoRow label={LORE.screens.lantern.sameCost} value="—" />
-        <InfoRow label={LORE.screens.lantern.regen(regenHours)} value="—" />
-        <InfoRow label={LORE.screens.lantern.refill} value="—" />
+        <InfoRow
+          label={TEXT.screens.energy.costLabel}
+          value={TEXT.screens.energy.costValue(GAME.energy.COST_PER_MATCH)}
+        />
+        <InfoRow label={TEXT.screens.energy.sameCostLabel} value={TEXT.screens.energy.sameCostValue} />
+        <InfoRow label={TEXT.screens.energy.regenLabel} value={TEXT.screens.energy.regenValue(regenHours)} />
+        <InfoRow label={TEXT.screens.energy.refillLabel} value={TEXT.screens.energy.refillValue} />
       </Card>
 
-      <SectionLabel>Good to know</SectionLabel>
+      <SectionLabel>{TEXT.screens.energy.notesHeading}</SectionLabel>
       <Card>
         <ul className="list-disc space-y-1.5 pl-4 text-[13px] leading-relaxed text-ink-soft">
-          {LORE.screens.lantern.notes.map((line) => (
+          {TEXT.screens.energy.notes.map((line: string) => (
             <li key={line}>{line}</li>
           ))}
         </ul>

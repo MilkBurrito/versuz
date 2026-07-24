@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useApp } from "@/state/store";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { Button } from "@/components/ui/Button";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
 import { PixelIcon } from "@/components/ui/icons";
@@ -16,7 +16,7 @@ export function OnboardingScreen() {
   const { completeOnboarding, snapshot } = useApp();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
-  const steps = LORE.onboarding.steps;
+  const steps = TEXT.onboarding.steps;
   const beat = steps[step]!;
   const last = step === steps.length - 1;
   const hero = characterById(snapshot?.user.characterSprite);
@@ -26,7 +26,7 @@ export function OnboardingScreen() {
       <div className="flex w-full max-w-sm flex-col items-center">
         {/* one emblem per beat: flame → sword icon → the Guard themselves */}
         <div className="flex h-[140px] items-center justify-center overflow-visible">
-          {step === 0 && <PixelIcon name="streak" size={96} alt="The Everflame" />}
+          {step === 0 && <PixelIcon name="lantern" size={96} alt="The Everflame" />}
           {step === 1 && <PixelIcon name="slot-weapon" size={96} alt="The living Sword" />}
           {step === 2 && (
             <SpriteAnimator sprite={hero.sprite} anim="idle" size={140} playKey={1} />
@@ -62,7 +62,7 @@ export function OnboardingScreen() {
             }
           }}
         >
-          {last ? LORE.onboarding.cta : LORE.onboarding.next}
+          {last ? TEXT.onboarding.cta : TEXT.onboarding.next}
         </Button>
       </div>
     </div>

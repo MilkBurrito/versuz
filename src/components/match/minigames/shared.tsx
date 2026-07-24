@@ -8,7 +8,7 @@
 import { createContext, useContext, useState } from "react";
 import { GAME } from "@/config/game";
 import { useApp } from "@/state/store";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import type { Word } from "@/lib/engine/text";
 import { CheckButton } from "@/components/ui/Button";
 import { PixelIcon } from "@/components/ui/icons";
@@ -139,14 +139,14 @@ export function HintButton({
     <button
       onClick={() => void click()}
       disabled={disabled || !canAfford || busy}
-      title={canAfford ? LORE.match.counselTitle(GAME.hints.ENERGY_COST) : LORE.match.counselEmpty}
+      title={canAfford ? TEXT.match.hintTitle(GAME.hints.ENERGY_COST) : TEXT.match.hintEmpty}
       className={`flex shrink-0 items-center justify-center gap-1.5 rounded-2xl border-2 px-4 text-[13px] font-extrabold uppercase tracking-wide transition-all ${
         disabled || !canAfford || busy
           ? "border-shell bg-shell text-ink-faint"
           : "border-shell-deep/50 bg-white text-ink-soft active:bg-shell"
       }`}
     >
-      {LORE.match.counsel}
+      {TEXT.match.hint}
       {!free && (
         <span className="flex items-center gap-0.5 text-[12px] normal-case tracking-normal">
           −{GAME.hints.ENERGY_COST}

@@ -6,7 +6,7 @@
 // Capitalization/punctuation auto-handled (compared on normalized forms).
 
 import { useRef, useState } from "react";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import type { MinigameRound } from "@/lib/engine/match";
 import { normalizeWord } from "@/lib/engine/text";
 import { CheckRow, ChunkContext } from "./shared";
@@ -107,7 +107,7 @@ export function FirstLetter({
           })}
         </div>
         <p className="mt-3 text-[11px] font-bold text-ink-faint">
-          {LORE.match.firstLetterHelp}
+          {TEXT.match.firstLetterHelp}
         </p>
       </div>
       <CheckRow

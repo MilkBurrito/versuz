@@ -1,15 +1,15 @@
 "use client";
 
-// Home hub (§13-B): status bar → hero + equip slots + nameplate + player XP →
+// Home hub (§13-B): status bar → nameplate + XP + the scene (character and
+// training dummy, both tappable) →
 // "Your Verses" (campaign cards with nested tiles, then standalones) → nav.
 // The pre-match overlay and the match screen mount over this.
 
 import { useEffect, useState } from "react";
 import { useApp } from "@/state/store";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { StatusBar, type StatusScreen } from "@/components/ui/StatusBar";
 import { BottomNav } from "@/components/ui/BottomNav";
-import { PixelIcon } from "@/components/ui/icons";
 import { HeroDisplay } from "@/components/home/HeroDisplay";
 import { CampaignCard } from "@/components/home/CampaignCard";
 import { VerseTileRow } from "@/components/home/VerseTileRow";
@@ -22,9 +22,9 @@ import { GemsScreen } from "@/components/screens/GemsScreen";
 import { OnboardingScreen } from "@/components/screens/OnboardingScreen";
 import { ProfileScreen } from "@/components/screens/ProfileScreen";
 import { StreakScreen } from "@/components/screens/StreakScreen";
-import { WaystationScreen } from "@/components/waystation/WaystationScreen";
+import { TrainingGroundScreen } from "@/components/training/TrainingGroundScreen";
 
-type HomeScreenName = StatusScreen | "character" | "waystation";
+type HomeScreenName = StatusScreen | "character" | "training";
 
 export default function HomePage() {
   const { ready, authRequired, snapshot, overlayTileId, match, init, openOverlay } = useApp();
@@ -74,13 +74,17 @@ export default function HomePage() {
     <div className="flex min-h-dvh flex-col bg-cream">
       <StatusBar user={user} onOpen={setScreen} />
       <main className="flex-1">
-        <HeroDisplay user={user} onOpenCharacter={() => setScreen("character")} />
+        <HeroDisplay
+          user={user}
+          onOpenCharacter={() => setScreen("character")}
+          onOpenTraining={() => setScreen("training")}
+        />
 
         <div className="mx-auto max-w-md px-4 pb-6">
           <div className="my-5 flex items-center gap-3">
             <span className="h-px flex-1 bg-shell-deep/40" />
             <h2 className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-ink-soft">
-              {LORE.home.versesHeading}
+              {TEXT.home.versesHeading}
             </h2>
             <span className="h-px flex-1 bg-shell-deep/40" />
           </div>
@@ -88,7 +92,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-3">
             {completeCampaigns.length === 0 && standalone.length === 0 && (
               <p className="px-4 py-6 text-center text-[13px] leading-relaxed text-ink-faint">
-                {LORE.home.empty}
+                {TEXT.home.empty}
               </p>
             )}
             {completeCampaigns.map(({ campaign, tiles: ctiles }) => (
@@ -104,23 +108,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* The Waystation — a rest node in the world, deliberately SECONDARY
-              to the day's Stands above (grinders must never mistake practice
-              for progress). */}
-          <button
-            onClick={() => setScreen("waystation")}
-            className="mt-5 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-shell-deep/40 bg-cream-card px-4 py-3 text-left active:bg-shell"
-          >
-            <PixelIcon name="streak" size={26} alt="" className="opacity-70" />
-            <span className="flex-1">
-              <span className="block text-[13px] font-extrabold text-ink-soft">
-                {LORE.home.waystation}
-              </span>
-              <span className="block text-[11px] font-bold text-ink-faint">
-                {LORE.home.waystationSub}
-              </span>
-            </span>
-          </button>
         </div>
       </main>
       <BottomNav />
@@ -132,7 +119,7 @@ export default function HomePage() {
       {screen === "gems" && <GemsScreen user={user} onClose={() => setScreen(null)} />}
       {screen === "energy" && <EnergyScreen user={user} onClose={() => setScreen(null)} />}
       {screen === "character" && <CharacterScreen onClose={() => setScreen(null)} />}
-      {screen === "waystation" && <WaystationScreen onClose={() => setScreen(null)} />}
+      {screen === "training" && <TrainingGroundScreen onClose={() => setScreen(null)} />}
 
       {overlayTile && <PreMatchOverlay tile={overlayTile} />}
       {match && <MatchScreen match={match} />}

@@ -4,7 +4,7 @@
 // restore each faded word from the bank.
 
 import { useEffect, useState } from "react";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildFadingWords } from "@/lib/engine/minigames";
 import { CheckRow, ChipButton, ChunkContext, usePlacement } from "./shared";
@@ -78,7 +78,7 @@ export function FadingWords({
           })}
         </p>
         {!faded && (
-          <p className="mt-3 text-[11px] font-bold text-ink-faint">{LORE.match.fadingHelp}</p>
+          <p className="mt-3 text-[11px] font-bold text-ink-faint">{TEXT.match.fadingHelp}</p>
         )}
       </div>
       {faded && (

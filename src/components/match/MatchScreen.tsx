@@ -14,7 +14,7 @@ import type { ThemeTag } from "@/config/game";
 import { castBoss, castEnemy, castEnvironment } from "@/config/casting";
 import type { Enemy } from "@/config/enemies";
 import { displayRef } from "@/lib/refs";
-import { LORE } from "@/lore/strings";
+import { TEXT } from "@/copy/strings";
 import { EnemyHpBar, PlayerHpBar } from "@/components/ui/Bars";
 import { Button } from "@/components/ui/Button";
 import { Nameplate } from "@/components/ui/Nameplate";
@@ -221,7 +221,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
           </Nameplate>
         ) : (
           <span className="rounded-full border-2 border-gold bg-gold-wash px-4 py-1.5 text-[12px] font-extrabold uppercase tracking-wide text-gold-deep">
-            {LORE.match.finisherLabel}
+            {TEXT.match.finisherLabel}
           </span>
         )}
       </div>
@@ -262,14 +262,14 @@ export function MatchScreen({ match }: { match: MatchSession }) {
       {confirmExit && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 px-8">
           <div className="vz-pop w-full max-w-xs rounded-3xl bg-white p-5 text-center">
-            <h2 className="text-[16px] font-extrabold text-ink">{LORE.match.exitTitle}</h2>
-            <p className="mt-1.5 text-[13px] text-ink-soft">{LORE.match.exitBody}</p>
+            <h2 className="text-[16px] font-extrabold text-ink">{TEXT.match.exitTitle}</h2>
+            <p className="mt-1.5 text-[13px] text-ink-soft">{TEXT.match.exitBody}</p>
             <div className="mt-4 flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setConfirmExit(false)}>
-                {LORE.match.exitStay}
+                {TEXT.match.exitStay}
               </Button>
               <Button variant="danger" className="flex-1" onClick={() => void abandonMatch()}>
-                {LORE.match.exitLeave}
+                {TEXT.match.exitLeave}
               </Button>
             </div>
           </div>
