@@ -15,9 +15,21 @@ export async function GET(req: Request) {
   // the name" when a key seems to have no effect. Safe to leave in.
   const body: Record<string, unknown> = { enabled };
   if (new URL(req.url).searchParams.get("debug") === "1") {
-    body.visibleKeyNames = Object.keys(process.env)
-      .filter((k) => /BIBLE|ESV|API_KEY/i.test(k))
-      .sort();
+    const probe = (name: string) => {
+      const v = process.env[name];
+      if (v === undefined) return "not set for this environment";
+      if (v.length === 0) return "PRESENT BUT EMPTY — the value didn't save";
+      const trimmed = v.trim().replace(/^["']|["']$/g, "");
+      return {
+        length: v.length,
+        usableLength: trimmed.length,
+        note:
+          trimmed.length === v.length
+            ? "looks clean"
+            : "has surrounding whitespace or quotes — strip them",
+      };
+    };
+    body.keys = { BIBLE_API_KEY: probe("BIBLE_API_KEY"), ESV_API_KEY: probe("ESV_API_KEY") };
     body.vercelEnv = process.env.VERCEL_ENV ?? null;
   }
 
