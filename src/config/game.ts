@@ -25,6 +25,7 @@ export const GAME = {
     // Diminishing per-tile-per-day: 1st match 100%, 2nd 50%, 3rd+ 25%.
     DIMINISHING: [1.0, 0.5, 0.25] as const,
     LOSS_CONSOLATION_PLAYER_XP: 10, // player XP only, no mastery XP on a loss
+    TIMER_BONUS_XP: 2, // per round where the clock was beaten (see timers below)
   },
 
   // --- §9.5 Energy ---
@@ -72,6 +73,30 @@ export const GAME = {
     ["word_order", "fading_words", "first_letter", "spot_the_lie", "snowball", "rapid_recall"], // L6 production-heavy
     [], // L7: random mixed from the HARD pool, Rapid Recall last (see match.ts)
   ] as const,
+
+  // --- Round timers: a BONUS, never a punishment ------------------------------
+  // Beating the clock adds a little XP; letting it run out costs nothing at all
+  // (no HP, no failed round) — timing someone who is still learning the words
+  // would punish exactly the wrong thing. Timers are assigned at plan-build
+  // time from the match's seeded rng, so a given match always looks the same.
+  //
+  // Only games where speed is a fair ask get one: tapping and recognition, not
+  // spelling or whole-verse production. Boss fights get many more of them —
+  // that's where the pressure belongs.
+  timers: {
+    ELIGIBLE: ["mystery_word", "word_bank", "phrase_bank", "rapid_recall"] as readonly string[],
+    /** Chance an eligible round is timed, by difficulty tier (none when easy). */
+    CHANCE_BY_DIFFICULTY: [0, 0.34, 0.5] as const,
+    /** Boss fights: most eligible rounds are timed. */
+    BOSS_CHANCE: 0.8,
+    /** seconds = BASE + PER_WORD × words, clamped — generous on purpose. */
+    BASE_SECONDS: 8,
+    SECONDS_PER_WORD: 1.6,
+    MIN_SECONDS: 12,
+    MAX_SECONDS: 75,
+    /** Typing the whole verse needs more room than tapping chips. */
+    TYPING_MULTIPLIER: 1.5,
+  },
 
   // --- Difficulty tier each verse level plays at: 1 easy · 2 standard · 3 hard.
   // Games read their own knobs from this tier, so the SAME game gets gentler

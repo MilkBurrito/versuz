@@ -10,12 +10,15 @@ export interface MatchXpInput {
   perfect: boolean; // zero mistakes (full player HP retained)
   rested: boolean; // tile untouched since at least yesterday
   practiceCountToday: number; // matches already played on this tile today (before this one)
+  clocksBeaten?: number; // timed rounds finished before the clock lapsed
 }
 
 export interface MatchXpBreakdown {
   base: number;
   perfectBonus: number;
   restedBonus: number;
+  /** Flat bonus for rounds where the optional clock was beaten. */
+  timerBonus: number;
   diminishingModifier: number;
   awarded: number;
 }
@@ -31,12 +34,16 @@ export function matchXp(input: MatchXpInput): MatchXpBreakdown {
     (input.finisherReached ? GAME.xp.FINISHER_BONUS : 0);
   const perfectBonus = input.perfect ? base * GAME.xp.PERFECT_BONUS : 0;
   const restedBonus = input.rested ? base * GAME.xp.RESTED_BONUS : 0;
+  // Flat, and diminished like everything else so it can't be farmed by
+  // replaying the same verse all day.
+  const timerBonus = (input.clocksBeaten ?? 0) * GAME.xp.TIMER_BONUS_XP;
   const mod = diminishingModifier(input.practiceCountToday);
-  const awarded = Math.round((base + perfectBonus + restedBonus) * mod);
+  const awarded = Math.round((base + perfectBonus + restedBonus + timerBonus) * mod);
   return {
     base,
     perfectBonus: Math.round(perfectBonus),
     restedBonus: Math.round(restedBonus),
+    timerBonus,
     diminishingModifier: mod,
     awarded,
   };

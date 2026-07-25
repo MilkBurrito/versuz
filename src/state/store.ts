@@ -41,6 +41,8 @@ export interface MatchSession {
   roundIndex: number;
   playerHp: number;
   mistakes: number;
+  /** Timed rounds finished before the clock lapsed (bonus XP at settle). */
+  clocksBeaten: number;
   phase: "playing" | "finisher" | "post";
   postSteps: PostMatchStep[];
   postIndex: number;
@@ -65,7 +67,8 @@ interface AppState {
   closeOverlay(): void;
   startPractice(tileId: string): Promise<void>;
   startBoss(campaignId: string): Promise<void>;
-  reportRound(correct: boolean): void;
+  /** `beatClock` is true when this round had a timer and it hadn't lapsed. */
+  reportRound(correct: boolean, beatClock?: boolean): void;
   reportFinisher(correct: boolean): Promise<void>;
   /** Spend energy for a hint; true when it was affordable (UI then reveals). */
   spendHint(): Promise<boolean>;
@@ -163,6 +166,7 @@ export const useApp = create<AppState>((set, get) => ({
         roundIndex: 0,
         playerHp: plan.playerHp,
         mistakes: 0,
+        clocksBeaten: 0,
         phase: "playing",
         postSteps: [],
         postIndex: 0,
@@ -198,6 +202,7 @@ export const useApp = create<AppState>((set, get) => ({
         roundIndex: 0,
         playerHp: plan.playerHp,
         mistakes: 0,
+        clocksBeaten: 0,
         phase: "playing",
         postSteps: [],
         postIndex: 0,
@@ -208,15 +213,16 @@ export const useApp = create<AppState>((set, get) => ({
     void get().refresh();
   },
 
-  reportRound(correct) {
+  reportRound(correct, beatClock = false) {
     const m = get().match;
     if (!m || m.phase !== "playing") return;
     if (correct) {
       const nextRound = m.roundIndex + 1;
+      const clocksBeaten = m.clocksBeaten + (beatClock ? 1 : 0);
       if (nextRound >= m.plan.rounds.length) {
-        set({ match: { ...m, roundIndex: nextRound, phase: "finisher" } });
+        set({ match: { ...m, roundIndex: nextRound, clocksBeaten, phase: "finisher" } });
       } else {
-        set({ match: { ...m, roundIndex: nextRound } });
+        set({ match: { ...m, roundIndex: nextRound, clocksBeaten } });
       }
     } else {
       const hp = m.playerHp - 1;
@@ -229,6 +235,7 @@ export const useApp = create<AppState>((set, get) => ({
           minigamesCompleted: m.roundIndex,
           mistakes,
           finisherCorrect: null,
+          clocksBeaten: m.clocksBeaten,
         });
       } else {
         set({ match: { ...m, playerHp: hp, mistakes } });
@@ -258,6 +265,7 @@ export const useApp = create<AppState>((set, get) => ({
       minigamesCompleted: m.plan.rounds.length,
       mistakes: m.mistakes,
       finisherCorrect: correct,
+      clocksBeaten: m.clocksBeaten,
     });
   },
 
@@ -400,5 +408,6 @@ export function previewPracticeXp(tile: Tile): number {
     perfect: false,
     rested: isRested(tile.lastPracticedDate, todayStr),
     practiceCountToday: practiceToday,
+    clocksBeaten: 0, // never promise a speed bonus up front
   }).awarded;
 }

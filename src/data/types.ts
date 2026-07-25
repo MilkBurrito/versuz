@@ -67,12 +67,16 @@ export interface MatchReport {
   minigamesCompleted: number;
   mistakes: number;
   finisherCorrect: boolean | null;
+  /** Rounds where a bonus clock was beaten (GAME.xp.TIMER_BONUS_XP each). */
+  clocksBeaten?: number;
 }
 
 export interface XpBreakdownResult {
   base: number;
   perfectBonus: number;
   restedBonus: number;
+  /** Flat bonus for timed rounds finished before the clock lapsed. */
+  timerBonus: number;
   diminishingModifier: number;
   awarded: number;
 }

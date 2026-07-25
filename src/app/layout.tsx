@@ -20,11 +20,17 @@ export const metadata: Metadata = {
   title: "Versuz — Bible Memory RPG",
   description: "Battle the dark with the Word.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg" },
+  icons: {
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f5f0e8",
+  themeColor: "#1b2b25",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

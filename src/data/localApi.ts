@@ -280,7 +280,14 @@ export class LocalGameApi implements GameApi {
       Math.min(report.minigamesCompleted, GAME.split.SOFT_CAP_TOTAL_MINIGAMES),
     );
 
-    let xp = { base: 0, perfectBonus: 0, restedBonus: 0, diminishingModifier: diminishingModifier(open.practiceCountToday), awarded: 0 };
+    let xp = {
+      base: 0,
+      perfectBonus: 0,
+      restedBonus: 0,
+      timerBonus: 0,
+      diminishingModifier: diminishingModifier(open.practiceCountToday),
+      awarded: 0,
+    };
     let playerXpDelta = 0;
 
     if (report.result === "win") {
@@ -290,6 +297,7 @@ export class LocalGameApi implements GameApi {
         perfect: report.mistakes === 0 && report.finisherCorrect === true,
         rested: open.rested,
         practiceCountToday: open.practiceCountToday,
+        clocksBeaten: report.clocksBeaten ?? 0,
       });
       playerXpDelta = xp.awarded;
     } else if (report.result === "loss") {
@@ -426,7 +434,14 @@ export class LocalGameApi implements GameApi {
     this.save();
 
     return {
-      xp: { base: won ? GAME.player.BOSS_DEFEAT_XP : 0, perfectBonus: 0, restedBonus: 0, diminishingModifier: 1, awarded: won ? GAME.player.BOSS_DEFEAT_XP : 0 },
+      xp: {
+        base: won ? GAME.player.BOSS_DEFEAT_XP : 0,
+        perfectBonus: 0,
+        restedBonus: 0,
+        timerBonus: 0,
+        diminishingModifier: 1,
+        awarded: won ? GAME.player.BOSS_DEFEAT_XP : 0,
+      },
       playerXpDelta,
       tile: null,
       player: {

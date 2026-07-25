@@ -22,6 +22,7 @@ import { CloseIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
 import { Parallax } from "@/components/match/Parallax";
 import { Finisher } from "@/components/match/Finisher";
+import { RoundTimer } from "@/components/match/RoundTimer";
 import { PostMatch } from "@/components/match/PostMatch";
 import { MINIGAME_LABELS, MinigameRenderer } from "@/components/match/minigames/MinigameRenderer";
 
@@ -71,6 +72,9 @@ export function MatchScreen({ match }: { match: MatchSession }) {
   // SpriteAnimator's onEnd resolves to whatever attack is currently in flight
   // (a ref, so re-renders during the ~2s playback can't drop the handler).
   const heroAttackDoneRef = useRef<(() => void) | null>(null);
+  // Bonus clock (see GAME.timers): a lapse costs NOTHING, it just forfeits the
+  // bonus, so this is a ref — no re-render, no interaction with HP.
+  const clockLapsedRef = useRef(false);
   // Watchdog: if onEnd somehow never arrives, the match must not stay gated.
   const attackWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -120,6 +124,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
   function onRoundCheck(correct: boolean) {
     if (acting) return;
     if (correct) {
+      const beatClock = round.timerSeconds !== null && !clockLapsedRef.current;
       const anim = ATTACK_CYCLE[atkCount % ATTACK_CYCLE.length]!;
       setAtkCount((n) => n + 1);
       const isLastHp = enemyRemaining <= 1;
@@ -128,7 +133,8 @@ export function MatchScreen({ match }: { match: MatchSession }) {
       setTimeout(() => setShake(null), 450);
       playHeroAttack(anim, () => {
         setEnemyAnim((s) => ({ anim: isLastHp ? "death" : "idle", key: s.key + 1 }));
-        reportRound(true);
+        clockLapsedRef.current = false; // fresh clock for the next round
+        reportRound(true, beatClock);
       });
     } else {
       setHeroAnim((s) => ({ anim: "hit", key: s.key + 1 }));
@@ -235,6 +241,18 @@ export function MatchScreen({ match }: { match: MatchSession }) {
         >
           {match.phase === "playing" ? (
             <>
+              {round.timerSeconds !== null && (
+                <div className="mb-2 shrink-0">
+                  <RoundTimer
+                    key={`clock-${match.roundIndex}`}
+                    seconds={round.timerSeconds}
+                    paused={acting || entering}
+                    onExpire={() => {
+                      clockLapsedRef.current = true;
+                    }}
+                  />
+                </div>
+              )}
               <p className="mb-2 shrink-0 text-[11px] font-bold uppercase tracking-wide text-ink-faint">
                 {MINIGAME_LABELS[round.type]} · {match.roundIndex + 1}/{match.plan.rounds.length}
                 {round.chunk ? ` · Part ${round.chunk.index} of ${round.chunk.total}` : ""}

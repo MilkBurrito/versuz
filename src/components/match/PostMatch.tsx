@@ -101,12 +101,26 @@ export function PostMatch({ match }: { match: MatchSession }) {
                 {settle.xp.restedBonus > 0 && (
                   <Row label="Rested +25%" value={settle.xp.restedBonus} gold />
                 )}
+                {settle.xp.timerBonus > 0 && (
+                  <Row
+                    label={TEXT.postMatch.timerBonusRow(
+                      settle.xp.timerBonus / GAME.xp.TIMER_BONUS_XP,
+                    )}
+                    value={settle.xp.timerBonus}
+                    gold
+                  />
+                )}
                 {settle.xp.diminishingModifier < 1 && (
                   <Row
                     label={`Practiced again today ×${settle.xp.diminishingModifier}`}
                     value={
                       settle.xp.awarded -
-                      Math.round(settle.xp.base + settle.xp.perfectBonus + settle.xp.restedBonus)
+                      Math.round(
+                        settle.xp.base +
+                          settle.xp.perfectBonus +
+                          settle.xp.restedBonus +
+                          settle.xp.timerBonus,
+                      )
                     }
                     dim
                   />

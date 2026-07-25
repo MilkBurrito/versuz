@@ -67,8 +67,10 @@ export const TEXT = {
     spotHelp: "Two words were swapped. Tap them both to swap them back.",
     spotHelpMany: (n: number) => `${n} words are out of place. Tap two to swap them.`,
     firstLetterPartialHelp: "Fill in the missing words — space jumps forward, backspace hops back.",
-    letterRevealHelp: "Tap the first letter of each missing word and it opens up.",
+    letterRevealHelp: "Type the first letter of each missing word — it opens up.",
     phraseBankHelp: "Put the phrases back in order.",
+    timerRemaining: (secs: number) => `${secs}s bonus`,
+    timerLapsed: "no bonus",
   },
 
   postMatch: {
@@ -78,6 +80,7 @@ export const TEXT = {
     bossVictorySub: "The Word did the work.",
     flawless: "✦ flawless",
     xpEarned: "XP earned",
+    timerBonusRow: (n: number) => `Beat the clock ×${n}`,
     lossTitle: "The demon won that round.",
     bossLossTitle: (name: string) => `${name} held the field.`,
     lossSub: "Sharpen the blade and go again.",

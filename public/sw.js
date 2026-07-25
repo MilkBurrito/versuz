@@ -1,7 +1,7 @@
 // Minimal service worker: precache the Bible text maps + app shell entry, cache-first
 // for static assets. Full offline sync (queued writes, IndexedDB tile cache) is a
 // follow-up pass; this makes the PWA installable and keeps verse text available offline.
-const CACHE = "versuz-v1";
+const CACHE = "versuz-v2"; // bumped: new app icon + shell
 const PRECACHE = ["/", "/bible/kjv.json", "/bible/asv.json"];
 
 self.addEventListener("install", (event) => {

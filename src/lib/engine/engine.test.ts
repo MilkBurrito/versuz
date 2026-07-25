@@ -5,7 +5,7 @@ import { matchXp, isRested, diminishingModifier } from "@/lib/engine/xp";
 import { energyAt, secondsToNextEnergy, spendEnergy } from "@/lib/engine/energy";
 import { chunkCount, splitVerseText, splitWords } from "@/lib/engine/split";
 import { tokenize, normalizeText } from "@/lib/engine/text";
-import { buildBossPlan, buildMatchPlan, plannedRoundCount, playerHpForLevel, sequenceForLevel, SPLITTABLE, buildTrainingPlan, type MinigameType } from "@/lib/engine/match";
+import { buildBossPlan, buildMatchPlan, plannedRoundCount, playerHpForLevel, sequenceForLevel, SPLITTABLE, buildTrainingPlan, type MinigameType, timerForRound } from "@/lib/engine/match";
 import {
   buildFadingWords,
   buildMysteryWord,
@@ -400,5 +400,72 @@ describe("training ground plans", () => {
     const plan = buildTrainingPlan("JHN.3.16", verse, 7, chosen);
     const used = new Set(plan.rounds.map((r) => r.type));
     for (const g of chosen) expect(used.has(g)).toBe(true);
+  });
+});
+
+describe("round timers (bonus only)", () => {
+  const verse = "For God so loved the world that he gave his only begotten Son";
+
+  it("never times an ineligible game, however the dice fall", () => {
+    for (const type of ["first_letter", "snowball", "letter_reveal", "spot_the_lie"] as const) {
+      expect(timerForRound(type, 12, 3, true, () => 0)).toBeNull();
+    }
+  });
+
+  it("never times anything at the easy tier — beginners aren't raced", () => {
+    for (const type of ["word_bank", "mystery_word", "phrase_bank", "rapid_recall"] as const) {
+      expect(timerForRound(type, 12, 1, false, () => 0)).toBeNull();
+    }
+  });
+
+  it("times eligible rounds at higher tiers, scaled by word count and clamped", () => {
+    const tiny = timerForRound("word_bank", 1, 3, false, () => 0)!;
+    const short = timerForRound("word_bank", 4, 3, false, () => 0)!;
+    const long = timerForRound("word_bank", 40, 3, false, () => 0)!;
+    expect(tiny).toBe(GAME.timers.MIN_SECONDS); // clamped to a generous floor
+    expect(short).toBeGreaterThanOrEqual(GAME.timers.MIN_SECONDS);
+    expect(long).toBeGreaterThan(short);
+    expect(long).toBeLessThanOrEqual(GAME.timers.MAX_SECONDS);
+  });
+
+  it("gives typing more room than tapping for the same words", () => {
+    const tapping = timerForRound("word_bank", 30, 3, false, () => 0)!;
+    const typing = timerForRound("rapid_recall", 30, 3, false, () => 0)!;
+    expect(typing).toBeGreaterThan(tapping);
+  });
+
+  it("boss fights are timed far more often than practice", () => {
+    // A roll that clears the boss bar but not the practice bar.
+    const roll = () => 0.6;
+    expect(timerForRound("word_bank", 12, 3, false, roll)).toBeNull();
+    expect(timerForRound("word_bank", 12, 3, true, roll)).not.toBeNull();
+  });
+
+  it("a match plan only ever times eligible rounds", () => {
+    for (const level of [1, 3, 5, 7] as const) {
+      const plan = buildMatchPlan("JHN.3.16", verse, level, () => 0.05);
+      for (const r of plan.rounds) {
+        if (r.timerSeconds !== null) expect(GAME.timers.ELIGIBLE).toContain(r.type);
+      }
+    }
+  });
+
+  it("beating clocks adds a flat bonus that still respects diminishing returns", () => {
+    const base = { minigamesCompleted: 5, finisherReached: true, perfect: false, rested: false };
+    const none = matchXp({ ...base, practiceCountToday: 0 });
+    const three = matchXp({ ...base, practiceCountToday: 0, clocksBeaten: 3 });
+    expect(three.timerBonus).toBe(3 * GAME.xp.TIMER_BONUS_XP);
+    expect(three.awarded).toBe(none.awarded + 3 * GAME.xp.TIMER_BONUS_XP);
+    // Third practice today: the bonus is diminished like everything else.
+    const farmed = matchXp({ ...base, practiceCountToday: 2, clocksBeaten: 3 });
+    expect(farmed.awarded).toBeLessThan(three.awarded);
+  });
+
+  it("expiring a clock is not a failure — it only forfeits the bonus", () => {
+    const base = { minigamesCompleted: 5, finisherReached: true, perfect: true, rested: false, practiceCountToday: 0 };
+    const beaten = matchXp({ ...base, clocksBeaten: 2 });
+    const lapsed = matchXp({ ...base, clocksBeaten: 0 });
+    expect(lapsed.awarded).toBeLessThan(beaten.awarded);
+    expect(lapsed.perfectBonus).toBe(beaten.perfectBonus); // flawless still stands
   });
 });

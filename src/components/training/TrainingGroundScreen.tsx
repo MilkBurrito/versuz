@@ -32,6 +32,7 @@ import { Nameplate } from "@/components/ui/Nameplate";
 import { CloseIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
 import { Parallax } from "@/components/match/Parallax";
+import { RoundTimer } from "@/components/match/RoundTimer";
 import { FreeDrillContext } from "@/components/match/minigames/shared";
 import { MINIGAME_LABELS, MinigameRenderer } from "@/components/match/minigames/MinigameRenderer";
 
@@ -420,6 +421,16 @@ function Session({
             </div>
           ) : round ? (
             <>
+              {round.timerSeconds !== null && (
+                <div className="mb-2 shrink-0">
+                  <RoundTimer
+                    key={`clock-${roundIndex}`}
+                    seconds={round.timerSeconds}
+                    paused={acting}
+                    onExpire={() => {}}
+                  />
+                </div>
+              )}
               <p className="mb-2 flex shrink-0 items-baseline justify-between gap-3 text-[11px] font-bold uppercase tracking-wide text-ink-faint">
                 <span className="min-w-0 truncate">
                   {MINIGAME_LABELS[round.type]}

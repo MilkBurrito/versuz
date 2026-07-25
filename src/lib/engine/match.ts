@@ -71,6 +71,9 @@ export interface MinigameRound {
   contextWords: Word[];
   /** How much this round asks — generators read their knobs from it. */
   difficulty: Difficulty;
+  /** Seconds on the clock, or null when this round isn't timed. Beating it is
+      a bonus; letting it lapse costs nothing (see GAME.timers). */
+  timerSeconds: number | null;
 }
 
 export interface MatchPlan {
@@ -106,6 +109,32 @@ export function sequenceForLevel(
   return picks;
 }
 
+/**
+ * Should this round carry a clock, and for how long? Eligible game + a seeded
+ * roll (never at the easy tier, nearly always in a boss fight). The limit
+ * scales with how many words are in play, clamped to stay generous.
+ */
+export function timerForRound(
+  type: MinigameType,
+  wordCount: number,
+  difficulty: Difficulty,
+  isBoss: boolean,
+  rng: () => number,
+): number | null {
+  if (!GAME.timers.ELIGIBLE.includes(type)) return null;
+  const chance = isBoss
+    ? GAME.timers.BOSS_CHANCE
+    : GAME.timers.CHANCE_BY_DIFFICULTY[difficulty - 1]!;
+  if (rng() >= chance) return null;
+  const typing = type === "rapid_recall";
+  const raw =
+    (GAME.timers.BASE_SECONDS + GAME.timers.SECONDS_PER_WORD * wordCount) *
+    (typing ? GAME.timers.TYPING_MULTIPLIER : 1);
+  return Math.round(
+    Math.min(GAME.timers.MAX_SECONDS, Math.max(GAME.timers.MIN_SECONDS, raw)),
+  );
+}
+
 function enemySegments(totalHp: number, level: VerseLevel): number[] {
   const count = Math.min(GAME.enemiesByLevel[level - 1]!, totalHp);
   const base = Math.floor(totalHp / count);
@@ -119,17 +148,20 @@ function chunkRounds(
   verseText: string,
   chunks: Word[][],
   difficulty: Difficulty,
+  rng: () => number,
 ): MinigameRound[] {
   if (!SPLITTABLE.has(type) || chunks.length <= 1) {
+    const words = chunks.flat();
     return [
       {
         type,
         verseId,
         verseText,
-        words: chunks.flat(),
+        words,
         chunk: null,
         contextWords: [],
         difficulty,
+        timerSeconds: timerForRound(type, words.length, difficulty, false, rng),
       },
     ];
   }
@@ -144,6 +176,7 @@ function chunkRounds(
       chunk: { index: i + 1, total: chunks.length },
       contextWords: context,
       difficulty,
+      timerSeconds: timerForRound(type, words.length, difficulty, false, rng),
     });
     context = [...context, ...words];
   });
@@ -162,7 +195,7 @@ export function buildMatchPlan(
 
   const rounds: MinigameRound[] = [];
   for (const type of sequence) {
-    rounds.push(...chunkRounds(type, verseId, verseText, chunks, difficulty));
+    rounds.push(...chunkRounds(type, verseId, verseText, chunks, difficulty, rng));
     if (rounds.length >= GAME.split.SOFT_CAP_TOTAL_MINIGAMES) break;
   }
   const capped = rounds.slice(0, GAME.split.SOFT_CAP_TOTAL_MINIGAMES);
@@ -193,6 +226,7 @@ export function buildTrainingPlan(
   verseText: string,
   level: VerseLevel,
   chosen: readonly MinigameType[],
+  rng: () => number = Math.random,
 ): MatchPlan {
   const pool = chosen.length > 0 ? chosen : ALL_TYPES;
   const count = minigameCountForLevel(level);
@@ -201,7 +235,9 @@ export function buildTrainingPlan(
 
   const rounds: MinigameRound[] = [];
   for (let i = 0; i < count; i++) {
-    rounds.push(...chunkRounds(pool[i % pool.length]!, verseId, verseText, chunks, difficulty));
+    rounds.push(
+      ...chunkRounds(pool[i % pool.length]!, verseId, verseText, chunks, difficulty, rng),
+    );
     if (rounds.length >= GAME.split.SOFT_CAP_TOTAL_MINIGAMES) break;
   }
   const capped = rounds.slice(0, GAME.split.SOFT_CAP_TOTAL_MINIGAMES);
@@ -263,16 +299,19 @@ export function buildBossPlan(
         chunk: { index: idx + 1, total: chunks.length },
         contextWords: chunks.slice(0, idx).flat(),
         difficulty: 3, // a Stronghold is the mastery test
+        timerSeconds: timerForRound(type, chunks[idx]!.length, 3, true, rng),
       });
     } else {
+      const bossWords = tokenize(verse.verseText);
       rounds.push({
         type,
         verseId: verse.verseId,
         verseText: verse.verseText,
-        words: tokenize(verse.verseText),
+        words: bossWords,
         chunk: null,
         contextWords: [],
         difficulty: 3,
+        timerSeconds: timerForRound(type, bossWords.length, 3, true, rng),
       });
     }
   }
