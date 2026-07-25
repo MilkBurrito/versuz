@@ -33,11 +33,21 @@ export default function SettingsPage() {
 
   const { user } = snapshot;
 
-  function update(partial: Partial<{ defaultTranslation: TranslationCode; streakVisuals: boolean; dailyGoal: 1 | 2 | 3 }>) {
+  function update(
+    partial: Partial<{
+      defaultTranslation: TranslationCode;
+      streakVisuals: boolean;
+      dailyGoal: 1 | 2 | 3;
+      musicEnabled: boolean;
+      sfxEnabled: boolean;
+    }>,
+  ) {
     void saveSettings({
       defaultTranslation: partial.defaultTranslation ?? user.defaultTranslation,
       streakVisuals: partial.streakVisuals ?? user.streakVisuals,
       dailyGoal: partial.dailyGoal ?? user.dailyGoal,
+      musicEnabled: partial.musicEnabled ?? user.musicEnabled,
+      sfxEnabled: partial.sfxEnabled ?? user.sfxEnabled,
     });
   }
 
@@ -73,7 +83,13 @@ export default function SettingsPage() {
             <Row label="Streak visuals" hint="Hide the flame if streaks stress you out">
               <Toggle checked={user.streakVisuals} onChange={(v) => update({ streakVisuals: v })} />
             </Row>
-            <Row label="Sound & haptics" locked />
+            <Row label={TEXT.screens.settings.music} hint={TEXT.screens.settings.musicHint}>
+              <Toggle checked={user.musicEnabled} onChange={(v) => update({ musicEnabled: v })} />
+            </Row>
+            <Row label={TEXT.screens.settings.sfx} hint={TEXT.screens.settings.sfxHint}>
+              <Toggle checked={user.sfxEnabled} onChange={(v) => update({ sfxEnabled: v })} />
+            </Row>
+            <Row label="Haptics" locked />
           </Section>
 
           <Section title="Accessibility">

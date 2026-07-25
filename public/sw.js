@@ -22,10 +22,17 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
-  // Cache-first for immutable static assets (bible maps, sprites, backgrounds).
+  // Media elements stream with Range requests; caching a 206 partial and
+  // replaying it as a full response breaks playback. Leave those to the
+  // browser (this is what keeps the 30 MB of music out of the cache too).
+  if (event.request.headers.has("range")) return;
+  // Cache-first for immutable static assets (bible maps, sprites, sound
+  // effects). Music is deliberately NOT here: it's ~5 MB a track, streamed
+  // one at a time, and belongs in the HTTP cache rather than ours.
   if (
     url.pathname.startsWith("/bible/") ||
     url.pathname.startsWith("/sprites/") ||
+    url.pathname.startsWith("/audio/sfx/") ||
     url.pathname.startsWith("/_next/static/")
   ) {
     event.respondWith(

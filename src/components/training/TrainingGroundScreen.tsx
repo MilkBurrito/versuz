@@ -31,6 +31,7 @@ import { EnemyHpBar } from "@/components/ui/Bars";
 import { Nameplate } from "@/components/ui/Nameplate";
 import { CloseIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
+import { playSfx } from "@/lib/audio/engine";
 import { Parallax } from "@/components/match/Parallax";
 import { RoundTimer } from "@/components/match/RoundTimer";
 import { FreeDrillContext } from "@/components/match/minigames/shared";
@@ -327,6 +328,8 @@ function Session({
       if (!correct) return; // no stakes — the minigame shows the miss, nothing else happens
       const anim = ATTACK_CYCLE[atkCount % ATTACK_CYCLE.length]!;
       setAtkCount((n) => n + 1);
+      playSfx("attack-swing");
+      playSfx(hero.id === "leaf-ranger" ? "hit-ranged" : "hit-melee");
       setActing(true);
       setHeroAnim((s) => ({ anim, key: s.key + 1 }));
       setDummyAnim((s) => ({ anim: "hit", key: s.key + 1 }));

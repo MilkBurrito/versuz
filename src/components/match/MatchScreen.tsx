@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { Nameplate } from "@/components/ui/Nameplate";
 import { CloseIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
+import { playSfx } from "@/lib/audio/engine";
 import { Parallax } from "@/components/match/Parallax";
 import { Finisher } from "@/components/match/Finisher";
 import { RoundTimer } from "@/components/match/RoundTimer";
@@ -90,6 +91,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
   // Walk-in entrance: run anim + drifting layers, then settle to idle.
   useEffect(() => {
     if (prefersReducedMotion()) return;
+    playSfx("walk");
     const t = setTimeout(() => {
       setEntering(false);
       setHeroAnim((s) => ({ anim: "idle", key: s.key + 1 }));
@@ -104,6 +106,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
   const round = match.plan.rounds[Math.min(match.roundIndex, match.plan.rounds.length - 1)]!;
 
   function playHeroAttack(anim: string, after: () => void) {
+    playSfx(anim === "sp_atk" ? "special" : "attack-swing");
     setActing(true);
     setHeroAnim((s) => ({ anim, key: s.key + 1 }));
     heroAttackDoneRef.current = () => {
@@ -129,6 +132,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
       setAtkCount((n) => n + 1);
       const isLastHp = enemyRemaining <= 1;
       setEnemyAnim((s) => ({ anim: "hurt", key: s.key + 1 }));
+      playSfx(hero.id === "leaf-ranger" ? "hit-ranged" : "hit-melee");
       setShake("enemy");
       setTimeout(() => setShake(null), 450);
       playHeroAttack(anim, () => {
@@ -137,6 +141,9 @@ export function MatchScreen({ match }: { match: MatchSession }) {
         reportRound(true, beatClock);
       });
     } else {
+      playSfx(match.plan.isBoss ? "hurt-boss" : "hurt");
+      // One point left: a warning the player can hear without looking up.
+      if (match.playerHp - 1 === 1) setTimeout(() => playSfx("low-health"), 320);
       setHeroAnim((s) => ({ anim: "hit", key: s.key + 1 }));
       setEnemyAnim((s) => ({ anim: "attack", key: s.key + 1 }));
       setShake("hero");
@@ -153,7 +160,10 @@ export function MatchScreen({ match }: { match: MatchSession }) {
     if (acting) return;
     if (correct) {
       // The finishing blow — sp_atk plays out in full, then the match settles.
-      playHeroAttack("sp_atk", () => void reportFinisher(true));
+      playHeroAttack("sp_atk", () => {
+        playSfx("finisher");
+        void reportFinisher(true);
+      });
     } else {
       void reportFinisher(false);
     }

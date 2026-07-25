@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { EB_Garamond, Montserrat } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { AudioProvider } from "@/components/audio/AudioProvider";
 import "./globals.css";
 
 const verseFont = EB_Garamond({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${verseFont.variable} ${uiFont.variable}`}>
         {children}
+        <AudioProvider />
         <ServiceWorkerRegister />
       </body>
     </html>

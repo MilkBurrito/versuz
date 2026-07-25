@@ -1,7 +1,13 @@
 // Button vocabulary: gold primary (Practice / Equip / Check), quiet outline,
 // danger outline (delete), per the mockups' pill-shaped chunky buttons.
+//
+// Every button clicks: routing the sound through here (rather than dozens of
+// call sites) means any new button is audible for free.
+
+"use client";
 
 import type { ButtonHTMLAttributes } from "react";
+import { playSfx } from "@/lib/audio/engine";
 
 type Variant = "primary" | "outline" | "danger" | "info";
 
@@ -19,11 +25,16 @@ const styles: Record<Variant, string> = {
 export function Button({
   variant = "primary",
   className = "",
+  onClick,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
     <button
       {...props}
+      onClick={(e) => {
+        playSfx("ui-click");
+        onClick?.(e);
+      }}
       className={`rounded-2xl px-5 py-3 text-[15px] font-bold transition-transform disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[0_3px_0_rgba(109,79,16,0.35)] ${styles[variant]} ${className}`}
     />
   );
@@ -41,7 +52,10 @@ export function CheckButton({
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        playSfx("ui-click");
+        onClick?.();
+      }}
       disabled={disabled}
       className={`w-full rounded-2xl py-4 text-[16px] font-extrabold uppercase tracking-widest transition-all ${
         disabled

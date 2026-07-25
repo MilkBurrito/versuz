@@ -97,6 +97,9 @@ export class LocalGameApi implements GameApi {
         if (!VALID_HEROES.includes(this.doc.user.characterSprite)) {
           this.doc.user.characterSprite = "fire-knight";
         }
+        // Saves written before audio shipped: sound is on by default.
+        this.doc.user.musicEnabled ??= true;
+        this.doc.user.sfxEnabled ??= true;
       } else {
         this.doc = this.opts.seedDemo ? await this.createSeedDoc() : this.createFreshDoc();
       }
@@ -122,6 +125,8 @@ export class LocalGameApi implements GameApi {
         defaultTranslation: "KJV",
         dailyGoal: 1,
         streakVisuals: true,
+        musicEnabled: true,
+        sfxEnabled: true,
         playerXp: 0,
         coins: 0,
         currentStreak: 0,
@@ -181,6 +186,8 @@ export class LocalGameApi implements GameApi {
         defaultTranslation: "KJV",
         dailyGoal: 1,
         streakVisuals: true,
+        musicEnabled: true,
+        sfxEnabled: true,
         playerXp: SEED_USER.playerXp,
         coins: SEED_USER.coins,
         currentStreak: SEED_USER.currentStreak,
@@ -558,11 +565,15 @@ export class LocalGameApi implements GameApi {
     defaultTranslation: UserState["defaultTranslation"];
     streakVisuals: boolean;
     dailyGoal: UserState["dailyGoal"];
+    musicEnabled: boolean;
+    sfxEnabled: boolean;
   }): Promise<void> {
     const d = this.get();
     d.user.defaultTranslation = settings.defaultTranslation;
     d.user.streakVisuals = settings.streakVisuals;
     d.user.dailyGoal = settings.dailyGoal;
+    d.user.musicEnabled = settings.musicEnabled;
+    d.user.sfxEnabled = settings.sfxEnabled;
     this.save();
   }
 

@@ -160,6 +160,10 @@ export const TEXT = {
     },
     settings: {
       title: "Settings",
+      music: "Music",
+      musicHint: "Background music on every screen",
+      sfx: "Sound effects",
+      sfxHint: "Hits, clicks, and rewards",
       copyrightLabel: "Scripture copyright",
       copyrightHint: "Translations used, and their publishers",
       copyrightAction: "View",

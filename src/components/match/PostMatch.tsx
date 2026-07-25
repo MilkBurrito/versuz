@@ -5,7 +5,7 @@
 // empty one. Loss is its own gentle screen; abandon skips all of this.
 // Boss wins route through the same beats with campaign rewards.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GAME } from "@/config/game";
 import type { MatchSession } from "@/state/store";
 import { useApp } from "@/state/store";
@@ -16,11 +16,18 @@ import { Button } from "@/components/ui/Button";
 import { XPBar } from "@/components/ui/Bars";
 import { PixelIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
+import { playSfx } from "@/lib/audio/engine";
 import { castForMatch, matchTag } from "@/components/match/MatchScreen";
 
 export function PostMatch({ match }: { match: MatchSession }) {
   const { advancePost, exitPostMatch, startPractice, snapshot } = useApp();
   const step = match.postSteps[match.postIndex];
+
+  // Each beat announces itself as it lands.
+  useEffect(() => {
+    if (step === "xp") playSfx("reward-xp");
+    else if (step === "chest") playSfx("reward-ember");
+  }, [step]);
   const settle = match.settle;
   // Same fighters the match showed (casting is deterministic per match id).
   const hero = characterById(snapshot?.user.characterSprite);
@@ -213,6 +220,7 @@ function ChestStep({
         className="vz-pop flex flex-col items-center"
         onClick={(e) => {
           e.stopPropagation();
+          playSfx("reward-ember");
           setOpen(true);
         }}
       >

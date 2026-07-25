@@ -87,6 +87,8 @@ interface AppState {
     defaultTranslation: GameSnapshot["user"]["defaultTranslation"];
     streakVisuals: boolean;
     dailyGoal: GameSnapshot["user"]["dailyGoal"];
+    musicEnabled: boolean;
+    sfxEnabled: boolean;
   }): Promise<void>;
 }
 

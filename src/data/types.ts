@@ -16,6 +16,9 @@ export interface UserState {
   defaultTranslation: TranslationCode;
   dailyGoal: 1 | 2 | 3;
   streakVisuals: boolean;
+  /** Audio preferences (see src/lib/audio). Default on. */
+  musicEnabled: boolean;
+  sfxEnabled: boolean;
   playerXp: number;
   coins: number;
   currentStreak: number;

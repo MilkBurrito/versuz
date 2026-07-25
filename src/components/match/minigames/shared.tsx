@@ -12,6 +12,7 @@ import { TEXT } from "@/copy/strings";
 import type { Word } from "@/lib/engine/text";
 import { CheckButton } from "@/components/ui/Button";
 import { PixelIcon } from "@/components/ui/icons";
+import { playSfx } from "@/lib/audio/engine";
 
 export interface BankEntry {
   word: string;
@@ -130,7 +131,10 @@ export function HintButton({
     }
     setBusy(true);
     try {
-      if (await spendHint()) onHint();
+      if (await spendHint()) {
+        playSfx("spend"); // energy left the pouch
+        onHint();
+      }
     } finally {
       setBusy(false);
     }
