@@ -6,6 +6,8 @@
 import type { MinigameRound } from "@/lib/engine/match";
 import { FadingWords } from "./FadingWords";
 import { FirstLetter } from "./FirstLetter";
+import { LetterReveal } from "./LetterReveal";
+import { PhraseBank } from "./PhraseBank";
 import { MysteryWord } from "./MysteryWord";
 import { RapidRecall } from "./RapidRecall";
 import { Snowball } from "./Snowball";
@@ -22,6 +24,8 @@ export const MINIGAME_LABELS: Record<MinigameRound["type"], string> = {
   rapid_recall: "Rapid recall",
   spot_the_lie: "Spot the lie",
   snowball: "Snowball",
+  letter_reveal: "Letter reveal",
+  phrase_bank: "Phrase bank",
 };
 
 export function MinigameRenderer({
@@ -50,5 +54,9 @@ export function MinigameRenderer({
       return <SpotTheLie round={round} onCheck={onCheck} />;
     case "snowball":
       return <Snowball round={round} onCheck={onCheck} />;
+    case "letter_reveal":
+      return <LetterReveal round={round} onCheck={onCheck} />;
+    case "phrase_bank":
+      return <PhraseBank round={round} onCheck={onCheck} />;
   }
 }

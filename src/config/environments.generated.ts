@@ -178,14 +178,4 @@ export const ENVIRONMENTS: EnvMeta[] = [
       }
     ]
   },
-  {
-    "id": "gothic-castle",
-    "layers": [
-      {
-        "src": "/environments/gothic-castle/1.png",
-        "w": 480,
-        "h": 336
-      }
-    ]
-  }
 ];

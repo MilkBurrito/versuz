@@ -46,9 +46,7 @@ export function buildWordBank(
   const outside = unique(
     verseWords.filter((w) => !inChunk.has(w.norm) && w.norm.length > 2).map((w) => w.norm),
   );
-  const decoyCount =
-    GAME.wordBank.DECOYS_MIN +
-    Math.floor(rng() * (GAME.wordBank.DECOYS_MAX - GAME.wordBank.DECOYS_MIN + 1));
+  const decoyCount = GAME.wordBank.DECOYS[round.difficulty - 1]!;
   const pool =
     outside.length >= decoyCount
       ? outside
@@ -131,7 +129,10 @@ export function buildFadingWords(
   const n = round.words.length;
   const count = Math.min(
     n,
-    Math.max(GAME.fadingWords.FADE_MIN, Math.round(n * GAME.fadingWords.FADE_FRACTION)),
+    Math.max(
+      GAME.fadingWords.FADE_MIN,
+      Math.round(n * GAME.fadingWords.FADE_FRACTION[round.difficulty - 1]!),
+    ),
   );
   const indexes = shuffle(round.words.map((_, i) => i), rng)
     .slice(0, count)
@@ -142,12 +143,12 @@ export function buildFadingWords(
   };
 }
 
-// --- §6.7 Spot the Lie (MVP zero-data tier): swap two content words ---
+// --- §6.7 Spot the Lie: lift k content words out of position (k by difficulty) ---
 
 export interface SpotTheLieData {
-  /** Indexes (into round.words) whose display positions were swapped. */
-  swapped: [number, number];
-  /** The words as displayed, with the swap applied. */
+  /** Indexes (into round.words) whose display positions were changed. */
+  displaced: number[];
+  /** The words as displayed, with the displacement applied. */
   displayed: Word[];
 }
 
@@ -158,19 +159,37 @@ export function buildSpotTheLie(
   const candidates = round.words
     .map((w, i) => ({ w, i }))
     .filter(({ w }) => isContentWord(w));
-  // Need two content words with different norms, or the lie is invisible.
-  const pairs: [number, number][] = [];
-  for (let a = 0; a < candidates.length; a++) {
-    for (let b = a + 1; b < candidates.length; b++) {
-      if (candidates[a]!.w.norm !== candidates[b]!.w.norm)
-        pairs.push([candidates[a]!.i, candidates[b]!.i]);
-    }
-  }
-  if (pairs.length === 0) return null; // caller falls back to another minigame
-  const [i, j] = pairs[Math.floor(rng() * pairs.length)]!;
+  // Need at least two content words with different norms, or the lie is invisible.
+  const distinct = new Set(candidates.map((c) => c.w.norm));
+  if (candidates.length < 2 || distinct.size < 2) return null; // caller falls back
+
+  const want = Math.min(
+    GAME.spotTheLie.DISPLACED[round.difficulty - 1]!,
+    candidates.length,
+  );
+  const chosen = shuffle(candidates, rng)
+    .slice(0, want)
+    .map((c) => c.i)
+    .sort((a, b) => a - b);
+
+  // Derange the chosen positions: rotate, then verify every one actually moved
+  // (equal norms can make a rotation invisible — retry with a shuffle).
   const displayed = [...round.words];
-  [displayed[i], displayed[j]] = [displayed[j]!, displayed[i]!];
-  return { swapped: [i, j], displayed };
+  const originals = chosen.map((i) => round.words[i]!);
+  let arrangement = [...originals.slice(1), originals[0]!];
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const moved = chosen.every((idx, k) => arrangement[k]!.norm !== round.words[idx]!.norm);
+    if (moved) break;
+    arrangement = shuffle(originals, rng);
+  }
+  // If no arrangement moves every word (e.g. repeated words), keep the ones
+  // that did move and report only those as displaced.
+  chosen.forEach((idx, k) => {
+    displayed[idx] = arrangement[k]!;
+  });
+  const displaced = chosen.filter((idx) => displayed[idx]!.norm !== round.words[idx]!.norm);
+  if (displaced.length < 2) return null;
+  return { displaced, displayed };
 }
 
 // --- §6.8 Snowball: clause segments, cumulative rounds ---
@@ -241,4 +260,108 @@ function editDistanceAtMost1(a: string, b: string): boolean {
     }
   }
   return true;
+}
+
+// --- §6.1 First Letter: which words become input boxes (the rest are spelled
+// out as context). At the hardest tier every word is blanked. ---
+
+export interface BlankSelection {
+  /** Indexes into round.words that the player must supply. */
+  blankIndexes: number[];
+}
+
+function pickBlanks(
+  round: MinigameRound,
+  fraction: number,
+  min: number,
+  rng: () => number,
+): BlankSelection {
+  const n = round.words.length;
+  const count = Math.max(Math.min(min, n), Math.min(n, Math.round(n * fraction)));
+  if (count >= n) return { blankIndexes: round.words.map((_, i) => i) };
+  // Prefer content words — blanking "the" teaches nothing.
+  const content = round.words.map((w, i) => ({ w, i })).filter(({ w }) => isContentWord(w));
+  const filler = round.words.map((w, i) => ({ w, i })).filter(({ w }) => !isContentWord(w));
+  const ordered = [...shuffle(content, rng), ...shuffle(filler, rng)];
+  return {
+    blankIndexes: ordered
+      .slice(0, count)
+      .map((c) => c.i)
+      .sort((a, b) => a - b),
+  };
+}
+
+export function buildFirstLetter(
+  round: MinigameRound,
+  rng: () => number = Math.random,
+): BlankSelection {
+  return pickBlanks(
+    round,
+    GAME.firstLetter.BLANK_FRACTION[round.difficulty - 1]!,
+    GAME.firstLetter.BLANK_MIN,
+    rng,
+  );
+}
+
+// --- NEW §6.9 Letter Reveal: blanks that open on ONE correct letter. The
+// gentlest recall game — the verse stays on screen, you supply the initial. ---
+
+export function buildLetterReveal(
+  round: MinigameRound,
+  rng: () => number = Math.random,
+): BlankSelection {
+  return pickBlanks(
+    round,
+    GAME.letterReveal.BLANK_FRACTION[round.difficulty - 1]!,
+    GAME.letterReveal.BLANK_MIN,
+    rng,
+  );
+}
+
+// --- NEW §6.10 Phrase Bank: Word Bank whose chips are whole phrases, so the
+// word order inside each phrase is handed to you. Easier than Word Bank. ---
+
+export interface PhraseBankData {
+  /** Phrases in verse order — the answer. */
+  answers: string[];
+  /** Shuffled phrase chips (answers + optional decoy). */
+  bank: string[];
+  /** Word spans backing each answer phrase, for display. */
+  spans: Word[][];
+}
+
+export function buildPhraseBank(
+  round: MinigameRound,
+  rng: () => number = Math.random,
+): PhraseBankData {
+  // Aim for a fixed number of chips; a 40-word verse becomes 4 long phrases at
+  // the easy tier rather than 13 short ones.
+  const wanted = GAME.phraseBank.PHRASES[round.difficulty - 1]!;
+  const target = Math.max(2, Math.ceil(round.words.length / wanted));
+  const spans: Word[][] = [];
+  let current: Word[] = [];
+  for (const w of round.words) {
+    current.push(w);
+    // Break on clause ends when the phrase is already a reasonable size,
+    // otherwise at the target length — phrases stay readable either way.
+    if ((w.clauseEnd && current.length >= Math.max(2, target - 1)) || current.length >= target) {
+      spans.push(current);
+      current = [];
+    }
+  }
+  if (current.length) {
+    if (spans.length && current.length === 1) spans[spans.length - 1]!.push(...current);
+    else spans.push(current);
+  }
+  const answers = spans.map((span) => span.map((w) => w.norm).join(" "));
+
+  const decoyCount = GAME.phraseBank.DECOYS[round.difficulty - 1]!;
+  const decoys: string[] = [];
+  if (decoyCount > 0 && spans.length > 1) {
+    // A decoy is a real phrase with its words shuffled — plausible, but wrong.
+    const source = spans[Math.floor(rng() * spans.length)]!;
+    const scrambled = shuffle(source.map((w) => w.norm), rng).join(" ");
+    if (!answers.includes(scrambled)) decoys.push(scrambled);
+  }
+  return { answers, bank: shuffle([...answers, ...decoys], rng), spans };
 }

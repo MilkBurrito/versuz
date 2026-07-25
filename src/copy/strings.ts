@@ -65,6 +65,10 @@ export const TEXT = {
     rapidWrong: "Not quite — small typos are forgiven, missing words are not.",
     rapidNext: "Next word:",
     spotHelp: "Two words were swapped. Tap them both to swap them back.",
+    spotHelpMany: (n: number) => `${n} words are out of place. Tap two to swap them.`,
+    firstLetterPartialHelp: "Fill in the missing words — space jumps forward, backspace hops back.",
+    letterRevealHelp: "Tap the first letter of each missing word and it opens up.",
+    phraseBankHelp: "Put the phrases back in order.",
   },
 
   postMatch: {

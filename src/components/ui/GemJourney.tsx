@@ -18,7 +18,7 @@ export function GemJourney({ currentLevel }: { currentLevel: VerseLevel }) {
       ?.scrollIntoView({ inline: "center", block: "nearest" });
   }, [currentLevel]);
   return (
-    <div ref={scroller} className="flex items-start overflow-x-auto px-4">
+    <div ref={scroller} className="flex items-start overflow-x-auto px-4 pb-2 pt-3">
       <div className="mx-auto flex items-start">
       {([1, 2, 3, 4, 5, 6, 7] as VerseLevel[]).map((level, i) => {
         const state =

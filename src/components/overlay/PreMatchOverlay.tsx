@@ -12,11 +12,10 @@ import { getVerseText } from "@/lib/bible/client";
 import { useAvailableTranslations } from "@/lib/bible/available";
 import { ATTRIBUTION, ESV_LINK } from "@/lib/bible/translations";
 import { energyAt, secondsToNextEnergy } from "@/lib/engine/energy";
-import { levelFromXp, levelProgress } from "@/lib/engine/mastery";
+import { levelFromXp } from "@/lib/engine/mastery";
 import { displayRef, parseRef, versesInChapter } from "@/lib/refs";
 import { previewPracticeXp, useApp } from "@/state/store";
 import { TEXT } from "@/copy/strings";
-import { XPBar } from "@/components/ui/Bars";
 import { Button } from "@/components/ui/Button";
 import { GemJourney } from "@/components/ui/GemJourney";
 import { Nameplate } from "@/components/ui/Nameplate";
@@ -31,6 +30,7 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
   const [loaded, setLoaded] = useState<{ key: string; text: string } | null>(null);
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [rangePickerOpen, setRangePickerOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [now] = useState(() => Date.now());
 
@@ -64,7 +64,6 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
     [snapshot, tile.verseId],
   );
   const available = useAvailableTranslations();
-  const offeredTranslations = available.filter((tr) => !heldTranslations.has(tr));
 
   const ref = parseRef(tile.verseId);
   const chapterHasRange = versesInChapter(ref.book, ref.chapter) > 1;
@@ -82,7 +81,7 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
           >
             <CloseIcon size={20} />
           </button>
-          <div className="mt-1 pb-8">
+          <div className="mt-1 pb-5">
             <GemJourney currentLevel={level} />
           </div>
           <div className="flex justify-center">
@@ -116,14 +115,13 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
               )}
             </p>
           )}
-          <div className="mx-auto mt-8 max-w-xs">
-            <XPBar fraction={levelProgress(tile.verseXp, tile.masteryGoal)} height={10} />
-            <p className="mt-1.5 text-center text-[11px] font-bold text-ink-faint">
-              {level >= 7
-                ? TEXT.preMatch.mastered
-                : TEXT.preMatch.progress(level, tile.verseXp, tile.masteryGoal)}
-            </p>
-          </div>
+          {/* No progress bar here on purpose — the gem journey at the top of
+              this screen IS the level track. Only the number needs saying. */}
+          <p className="mt-8 text-center text-[11px] font-bold text-ink-faint">
+            {level >= 7
+              ? TEXT.preMatch.mastered
+              : TEXT.preMatch.progress(level, tile.verseXp, tile.masteryGoal)}
+          </p>
         </div>
       </div>
 
@@ -163,16 +161,9 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
             <Button
               variant="info"
               className="px-3.5"
-              disabled={offeredTranslations.length === 0}
-              title={
-                offeredTranslations.length === 0
-                  ? "All available translations added"
-                  : "Change translation (resets progress)"
-              }
-              onClick={() =>
-                offeredTranslations[0] &&
-                setConfirm({ kind: "translation", to: offeredTranslations[0] })
-              }
+              disabled={available.length <= 1}
+              title="Change translation"
+              onClick={() => setPickerOpen(true)}
             >
               {tile.translation}
             </Button>
@@ -190,6 +181,19 @@ export function PreMatchOverlay({ tile }: { tile: Tile }) {
 
       {rangePickerOpen && (
         <VerseRangePicker tile={tile} onClose={() => setRangePickerOpen(false)} />
+      )}
+
+      {pickerOpen && (
+        <TranslationPicker
+          current={tile.translation}
+          available={available}
+          held={heldTranslations}
+          onClose={() => setPickerOpen(false)}
+          onPick={(to) => {
+            setPickerOpen(false);
+            setConfirm({ kind: "translation", to });
+          }}
+        />
       )}
 
       {confirm && (
@@ -258,6 +262,76 @@ function ConfirmDialog({
             disabled={busy}
           >
             {copy.action}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Every translation this deployment can serve (public-domain KJV/ASV plus any
+ * licensed ones the server has keys for). The one in use is marked; a verse
+ * already held in another translation can't be switched into — that would make
+ * a duplicate tile — so it's shown as already added.
+ */
+function TranslationPicker({
+  current,
+  available,
+  held,
+  onClose,
+  onPick,
+}: {
+  current: TranslationCode;
+  available: readonly TranslationCode[];
+  held: Set<string>;
+  onClose: () => void;
+  onPick: (to: TranslationCode) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-black/50" onClick={onClose}>
+      <div
+        className="vz-sheet-up w-full rounded-t-3xl bg-white pb-[calc(env(safe-area-inset-bottom)+16px)] pt-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto w-full max-w-md px-5">
+          <h2 className="text-[16px] font-extrabold text-ink">Translation</h2>
+          <p className="mt-1 text-[12px] leading-relaxed text-ink-soft">
+            Switching re-learns the verse — the words change, so progress starts over.
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            {available.map((code) => {
+              const isCurrent = code === current;
+              const alreadyHeld = !isCurrent && held.has(code);
+              return (
+                <button
+                  key={code}
+                  disabled={isCurrent || alreadyHeld}
+                  onClick={() => onPick(code)}
+                  className={`flex items-center justify-between rounded-2xl border-2 px-4 py-3 text-left transition-colors ${
+                    isCurrent
+                      ? "border-gold bg-gold-wash"
+                      : alreadyHeld
+                        ? "border-shell bg-shell"
+                        : "border-shell-deep/40 bg-white active:bg-shell"
+                  }`}
+                >
+                  <span
+                    className={`text-[15px] font-extrabold ${
+                      isCurrent ? "text-gold-deep" : alreadyHeld ? "text-ink-faint" : "text-ink"
+                    }`}
+                  >
+                    {code}
+                  </span>
+                  <span className="text-[11px] font-bold text-ink-faint">
+                    {isCurrent ? "in use" : alreadyHeld ? "already added" : ""}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <Button variant="outline" className="mt-4 w-full" onClick={onClose}>
+            Cancel
           </Button>
         </div>
       </div>

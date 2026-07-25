@@ -37,7 +37,7 @@ const THEME_ENVIRONMENTS: Partial<Record<ThemeTag, string>> = {
   temptation: "lava",
   wisdom: "forest-road",
   strength: "rocky-pass",
-  doubt: "gothic-castle",
+  doubt: "forest-deep",
 };
 
 /** The hub's scene. */

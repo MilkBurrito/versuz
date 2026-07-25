@@ -222,9 +222,7 @@ const ENVIRONMENTS = [
     `${MATCH_ENV}/lava-background/PNG/background.png`,
     `${MATCH_ENV}/lava-background/PNG/middle-rocks.png`,
   ] },
-  { id: "gothic-castle", layers: [
-    `${MATCH_ENV}/Gothic-Castle-Files/PNG/layers/gothic-castle-background.png`,
-  ] },
+  // gothic-castle removed 2026-07-24 (Alex: the dark castle broke immersion).
 ];
 
 const envManifest = [];

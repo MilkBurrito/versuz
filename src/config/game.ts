@@ -45,26 +45,67 @@ export const GAME = {
   // --- §5 Memorization minigame count by verse level 1..7 (finisher extra) ---
   minigamesByLevel: [4, 4, 5, 5, 6, 6, 7] as const,
 
-  // --- §5 Recommended minigame sequences per level (tunable; "mixed" slots
-  // follow the spec's difficulty notes). L7 is random mixed, built at plan time. ---
+  // --- §5 minigame sequences per level, ordered along the DIFFICULTY LADDER
+  // below (easiest first). A brand-new verse (L1) only ever meets recognition
+  // games and heavily-scaffolded recall; whole-verse production (First Letter
+  // in full, Snowball, Rapid Recall) is earned later.
+  //
+  // THE LADDER (easiest → hardest), as implemented:
+  //   1 spot_the_lie   — the verse is in front of you; find what moved
+  //   2 mystery_word   — one blank, four choices, rest of the verse intact
+  //   3 letter_reveal  — blanks reveal on one correct letter (max scaffolding)
+  //   4 phrase_bank    — order whole phrases (internal word order is given)
+  //   5 word_bank      — order individual words, with decoys
+  //   6 word_order     — rebuild the sequence from every word, no decoys
+  //   7 fading_words   — you read it, then it's gone; restore from a bank
+  //   8 first_letter   — TYPE the words from a one-letter cue (partial → full)
+  //   9 snowball       — cumulative clause-by-clause production
+  //  10 rapid_recall   — blank page, whole verse, from memory
+  // (Arguable: word_order vs fading_words are close; fading_words is placed
+  // higher because the text disappears.)
   sequencesByLevel: [
-    ["word_bank", "first_letter", "word_bank", "first_letter"], // L1 Verse Builder → First Letter → mixed
-    ["first_letter", "word_order", "word_bank", "first_letter"], // L2 First Letter → Word Order → mixed
-    ["first_letter", "word_order", "mystery_word", "spot_the_lie", "word_bank"], // L3 adds Mystery/Spot the Lie
-    ["first_letter", "fading_words", "word_order", "mystery_word", "spot_the_lie"], // L4 adds Fading Words
-    ["snowball", "first_letter", "fading_words", "mystery_word", "spot_the_lie", "rapid_recall"], // L5 adds Snowball/Rapid Recall
-    ["snowball", "fading_words", "first_letter", "spot_the_lie", "mystery_word", "rapid_recall"], // L6 mixed, harder
-    [], // L7: random mixed, Rapid Recall guaranteed last (see match.ts)
+    ["spot_the_lie", "mystery_word", "letter_reveal", "phrase_bank"], // L1 recognition only
+    ["mystery_word", "letter_reveal", "phrase_bank", "word_bank"], // L2 adds word-level ordering
+    ["letter_reveal", "phrase_bank", "word_bank", "word_order", "first_letter"], // L3 first typing (partial)
+    ["phrase_bank", "word_bank", "word_order", "fading_words", "first_letter"], // L4 adds Fading Words
+    ["word_bank", "word_order", "fading_words", "first_letter", "snowball", "rapid_recall"], // L5 adds Snowball/Rapid Recall
+    ["word_order", "fading_words", "first_letter", "spot_the_lie", "snowball", "rapid_recall"], // L6 production-heavy
+    [], // L7: random mixed from the HARD pool, Rapid Recall last (see match.ts)
   ] as const,
 
-  // --- §6 per-minigame knobs ---
+  // --- Difficulty tier each verse level plays at: 1 easy · 2 standard · 3 hard.
+  // Games read their own knobs from this tier, so the SAME game gets gentler
+  // at low levels (fewer blanks, bigger phrase chunks, fewer decoys). ---
+  difficultyByLevel: [1, 1, 2, 2, 2, 3, 3] as const,
+
+  // --- §6 per-minigame knobs. Arrays are indexed by DIFFICULTY TIER (1..3),
+  // so the same game asks for less at low verse levels. ---
   fadingWords: {
-    FADE_FRACTION: 0.35, // share of the round's words that fade
+    FADE_FRACTION: [0.25, 0.35, 0.5] as const, // share of the round's words that fade
     FADE_MIN: 2,
   },
+  firstLetter: {
+    // Share of the chunk's words blanked into input boxes; the rest are
+    // SPELLED OUT as context. At tier 3 the whole chunk is blanked (the
+    // original behavior).
+    BLANK_FRACTION: [0.35, 0.7, 1.0] as const,
+    BLANK_MIN: 2,
+  },
+  letterReveal: {
+    // Blanks that open with ONE correct letter — the gentlest recall game.
+    BLANK_FRACTION: [0.25, 0.4, 0.55] as const,
+    BLANK_MIN: 2,
+  },
+  phraseBank: {
+    // Target NUMBER of phrase chips (not words per chip): fewer, longer
+    // phrases are easier, and a long verse can't explode into 13 slots.
+    PHRASES: [4, 5, 6] as const,
+    DECOYS: [0, 1, 1] as const,
+  },
   spotTheLie: {
-    // MVP zero-data tier: one position-swap of two content words (= 2 altered
-    // words, within the spec's 1–3 cap). Morphology/synonym tiers are v-next.
+    // Content words lifted out of position (the player swaps them back).
+    // Two is the gentle tier; more displaced words means a harder read.
+    DISPLACED: [2, 3, 4] as const,
     STOPLIST: [
       "the", "of", "a", "an", "and", "or", "but", "in", "on", "at", "to",
       "for", "by", "so", "that", "his", "her", "him", "he", "she", "it",
@@ -95,10 +136,9 @@ export const GAME = {
     SOFT_CAP_TOTAL_MINIGAMES: 10, // per match, prevents marathon matches
   },
 
-  // --- §6.4 Word Bank ---
+  // --- §6.4 Word Bank: decoy count by difficulty tier ---
   wordBank: {
-    DECOYS_MIN: 2,
-    DECOYS_MAX: 3,
+    DECOYS: [1, 2, 3] as const,
   },
 
   // --- §9.6 Soft spacing ---

@@ -27,6 +27,7 @@ import { displayRef } from "@/lib/refs";
 import { TEXT } from "@/copy/strings";
 import { DUMMY_DISPLAY_H, DUMMY_SPRITE, TRAINABLE_GAMES, TRAINING_ENVS } from "@/config/training";
 import { Button } from "@/components/ui/Button";
+import { EnemyHpBar } from "@/components/ui/Bars";
 import { Nameplate } from "@/components/ui/Nameplate";
 import { CloseIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
@@ -72,12 +73,15 @@ function Scene({
   onClose,
   closeLabel,
   right,
+  bar,
   children,
 }: {
   env: EnvMeta;
   onClose: () => void;
   closeLabel: string;
   right?: React.ReactNode;
+  /** The dummy's life bar — cosmetic; it just tracks session progress. */
+  bar?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -100,6 +104,7 @@ function Scene({
             {right}
           </span>
         </div>
+        {bar}
         {children}
       </div>
     </div>
@@ -350,6 +355,16 @@ function Session({
         onClose={onClose}
         closeLabel={TEXT.training.quit}
         right={plan ? TEXT.training.round(Math.min(roundIndex + 1, plan.rounds.length), plan.rounds.length) : null}
+        bar={
+          plan ? (
+            <div className="px-4 pt-2">
+              <EnemyHpBar total={plan.rounds.length} remaining={Math.max(0, plan.rounds.length - roundIndex)} />
+              <p className="mt-1 text-center text-[11px] font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                {TEXT.training.dummy}
+              </p>
+            </div>
+          ) : null
+        }
       >
         <div
           className="relative mt-1 flex items-end justify-between px-6"

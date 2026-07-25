@@ -1,7 +1,8 @@
 "use client";
 
-// §6.7 Spot the Lie: the enemy swapped two words of the Word. Tap the two
-// out-of-place words to swap them back, then Check. (MVP zero-data tier.)
+// §6.7 Spot the Lie: the enemy lifted some words out of place. Tap two words
+// to swap them, until the verse reads true again. How MANY words move scales
+// with the verse level (GAME.spotTheLie.DISPLACED).
 
 import { useState } from "react";
 import { TEXT } from "@/copy/strings";
@@ -21,17 +22,24 @@ export function SpotTheLie({
   // No swappable pair (e.g. a chunk of all function words): fall back to Word Order.
   if (!data) return <WordOrder round={round} onCheck={onCheck} />;
   return (
-    <SpotTheLieBoard round={round} initial={data.displayed.map((w) => w.display)} onCheck={onCheck} />
+    <SpotTheLieBoard
+      round={round}
+      initial={data.displayed.map((w) => w.display)}
+      displacedCount={data.displaced.length}
+      onCheck={onCheck}
+    />
   );
 }
 
 function SpotTheLieBoard({
   round,
   initial,
+  displacedCount,
   onCheck,
 }: {
   round: MinigameRound;
   initial: string[];
+  displacedCount: number;
   onCheck: (correct: boolean) => void;
 }) {
   const [order, setOrder] = useState(initial); // current display order
@@ -87,7 +95,7 @@ function SpotTheLieBoard({
           ))}
         </p>
         <p className="mt-3 text-[11px] font-bold text-ink-faint">
-          {TEXT.match.spotHelp}
+          {displacedCount > 2 ? TEXT.match.spotHelpMany(displacedCount) : TEXT.match.spotHelp}
         </p>
       </div>
       <CheckRow

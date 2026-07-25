@@ -151,3 +151,8 @@ body {
     box-shadow: 0 0 8px 2px rgba(212, 164, 41, 0.8);
   }
 }
+
+/* 13-column grid for the Letter Reveal a–z pad (two dense rows). */
+.grid-cols-13 {
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+}

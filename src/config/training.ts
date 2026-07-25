@@ -33,13 +33,16 @@ export const DUMMY_DISPLAY_H = 84;
 export const DUMMY_HOME_H = 78;
 
 /** The pickable games, in the order they appear in the setup screen. */
+/** Listed easiest → hardest, matching the difficulty ladder in game.ts. */
 export const TRAINABLE_GAMES: readonly MinigameType[] = [
-  "word_bank",
-  "first_letter",
-  "word_order",
-  "mystery_word",
-  "fading_words",
   "spot_the_lie",
+  "mystery_word",
+  "letter_reveal",
+  "phrase_bank",
+  "word_bank",
+  "word_order",
+  "fading_words",
+  "first_letter",
   "snowball",
   "rapid_recall",
 ];

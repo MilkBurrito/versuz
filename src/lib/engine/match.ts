@@ -15,7 +15,16 @@ export type MinigameType =
   | "fading_words"
   | "rapid_recall"
   | "spot_the_lie"
-  | "snowball";
+  | "snowball"
+  | "letter_reveal" // NEW: blanks open on one correct letter
+  | "phrase_bank"; // NEW: word bank whose chips are whole phrases
+
+/** 1 easy · 2 standard · 3 hard — how much a game asks at this verse level. */
+export type Difficulty = 1 | 2 | 3;
+
+export function difficultyForLevel(level: VerseLevel): Difficulty {
+  return GAME.difficultyByLevel[level - 1]! as Difficulty;
+}
 
 export const SPLITTABLE: ReadonlySet<MinigameType> = new Set([
   "word_bank",
@@ -25,14 +34,26 @@ export const SPLITTABLE: ReadonlySet<MinigameType> = new Set([
 ]);
 
 const ALL_TYPES: readonly MinigameType[] = [
-  "word_bank",
-  "first_letter",
-  "word_order",
-  "mystery_word",
-  "fading_words",
-  "rapid_recall",
   "spot_the_lie",
+  "mystery_word",
+  "letter_reveal",
+  "phrase_bank",
+  "word_bank",
+  "word_order",
+  "fading_words",
+  "first_letter",
   "snowball",
+  "rapid_recall",
+];
+
+/** The mastery-level (L7) pool: only the production-heavy half of the ladder. */
+const HARD_POOL: readonly MinigameType[] = [
+  "word_bank",
+  "word_order",
+  "fading_words",
+  "first_letter",
+  "snowball",
+  "spot_the_lie",
 ];
 
 export interface MinigameRound {
@@ -48,6 +69,8 @@ export interface MinigameRound {
   /** Prior-part words, shown faded above the interaction (rev: never make the
       player remember where the previous part stopped). */
   contextWords: Word[];
+  /** How much this round asks — generators read their knobs from it. */
+  difficulty: Difficulty;
 }
 
 export interface MatchPlan {
@@ -76,7 +99,7 @@ export function sequenceForLevel(
   const preset = GAME.sequencesByLevel[level - 1]!;
   if (preset.length > 0) return [...preset] as MinigameType[];
   const count = minigameCountForLevel(level);
-  const pool = ALL_TYPES.filter((t) => t !== "rapid_recall");
+  const pool = HARD_POOL;
   const picks: MinigameType[] = [];
   for (let i = 0; i < count - 1; i++) picks.push(pool[Math.floor(rng() * pool.length)]!);
   picks.push("rapid_recall"); // the whole-verse capstone closes the mastery match
@@ -95,6 +118,7 @@ function chunkRounds(
   verseId: string,
   verseText: string,
   chunks: Word[][],
+  difficulty: Difficulty,
 ): MinigameRound[] {
   if (!SPLITTABLE.has(type) || chunks.length <= 1) {
     return [
@@ -105,6 +129,7 @@ function chunkRounds(
         words: chunks.flat(),
         chunk: null,
         contextWords: [],
+        difficulty,
       },
     ];
   }
@@ -118,6 +143,7 @@ function chunkRounds(
       words,
       chunk: { index: i + 1, total: chunks.length },
       contextWords: context,
+      difficulty,
     });
     context = [...context, ...words];
   });
@@ -132,10 +158,11 @@ export function buildMatchPlan(
 ): MatchPlan {
   const sequence = sequenceForLevel(level, rng);
   const chunks = splitVerseText(verseText);
+  const difficulty = difficultyForLevel(level);
 
   const rounds: MinigameRound[] = [];
   for (const type of sequence) {
-    rounds.push(...chunkRounds(type, verseId, verseText, chunks));
+    rounds.push(...chunkRounds(type, verseId, verseText, chunks, difficulty));
     if (rounds.length >= GAME.split.SOFT_CAP_TOTAL_MINIGAMES) break;
   }
   const capped = rounds.slice(0, GAME.split.SOFT_CAP_TOTAL_MINIGAMES);
@@ -170,10 +197,11 @@ export function buildTrainingPlan(
   const pool = chosen.length > 0 ? chosen : ALL_TYPES;
   const count = minigameCountForLevel(level);
   const chunks = splitVerseText(verseText);
+  const difficulty = difficultyForLevel(level);
 
   const rounds: MinigameRound[] = [];
   for (let i = 0; i < count; i++) {
-    rounds.push(...chunkRounds(pool[i % pool.length]!, verseId, verseText, chunks));
+    rounds.push(...chunkRounds(pool[i % pool.length]!, verseId, verseText, chunks, difficulty));
     if (rounds.length >= GAME.split.SOFT_CAP_TOTAL_MINIGAMES) break;
   }
   const capped = rounds.slice(0, GAME.split.SOFT_CAP_TOTAL_MINIGAMES);
@@ -223,7 +251,7 @@ export function buildBossPlan(
   const rounds: MinigameRound[] = [];
   for (let i = 0; i < GAME.boss.MINIGAMES; i++) {
     const verse = verses[Math.floor(rng() * verses.length)]!;
-    const type = ALL_TYPES[Math.floor(rng() * ALL_TYPES.length)]!;
+    const type = HARD_POOL[Math.floor(rng() * HARD_POOL.length)]!;
     const chunks = splitVerseText(verse.verseText);
     if (SPLITTABLE.has(type) && chunks.length > 1) {
       const idx = Math.floor(rng() * chunks.length);
@@ -234,6 +262,7 @@ export function buildBossPlan(
         words: chunks[idx]!,
         chunk: { index: idx + 1, total: chunks.length },
         contextWords: chunks.slice(0, idx).flat(),
+        difficulty: 3, // a Stronghold is the mastery test
       });
     } else {
       rounds.push({
@@ -243,6 +272,7 @@ export function buildBossPlan(
         words: tokenize(verse.verseText),
         chunk: null,
         contextWords: [],
+        difficulty: 3,
       });
     }
   }
