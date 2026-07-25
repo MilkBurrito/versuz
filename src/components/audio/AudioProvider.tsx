@@ -28,13 +28,15 @@ export function AudioProvider() {
   const musicOn = useApp((s) => s.snapshot?.user.musicEnabled ?? true);
   const sfxOn = useApp((s) => s.snapshot?.user.sfxEnabled ?? true);
 
-  // First gesture anywhere unlocks the engine (and starts any queued music).
+  // A gesture unlocks the engine (and starts any queued music). NOT `once`:
+  // if the browser refuses that first play() the engine re-locks itself, and
+  // a one-shot listener would leave the app permanently silent.
   useEffect(() => {
     const onGesture = () => {
       unlock();
       preloadSfx();
     };
-    const opts = { once: true, passive: true } as const;
+    const opts = { passive: true } as const;
     window.addEventListener("pointerdown", onGesture, opts);
     window.addEventListener("keydown", onGesture, opts);
     return () => {
