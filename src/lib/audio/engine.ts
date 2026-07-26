@@ -40,6 +40,8 @@ let currentContext: MusicContext | null = null;
 let currentTrackId: string | null = null;
 /** Set while locked, so the first gesture can start what was requested. */
 let pendingContext: MusicContext | null = null;
+/** True while the tab is hidden — music is paused, not stopped. */
+let backgrounded = false;
 
 // Short effects are cached per source and cloned to allow overlaps.
 const sfxCache = new Map<string, HTMLAudioElement>();
@@ -109,6 +111,7 @@ async function switchTrack(track: MusicTrack): Promise<void> {
   el.volume = 0;
   currentTrackId = track.id;
 
+  if (backgrounded) return; // resumed by setPageHidden when the tab returns
   try {
     await el.play();
   } catch (err) {
@@ -122,6 +125,25 @@ async function switchTrack(track: MusicTrack): Promise<void> {
   }
   if (token !== switchToken) return;
   await fadeTo(MUSIC_VOLUME);
+}
+
+/**
+ * Music follows the tab: leaving pauses it (keeping the track and position),
+ * coming back resumes. Nobody wants a hymn playing from a tab they left an
+ * hour ago.
+ */
+export function setPageHidden(hidden: boolean): void {
+  backgrounded = hidden;
+  if (!musicEl) return;
+  if (hidden) {
+    clearFade();
+    musicEl.pause();
+  } else if (musicEnabled && unlocked && musicEl.src) {
+    void musicEl.play().then(
+      () => fadeTo(MUSIC_VOLUME),
+      () => {},
+    );
+  }
 }
 
 /** Call from a real user gesture (a tap/click). Safe to call repeatedly. */

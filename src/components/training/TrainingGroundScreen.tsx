@@ -22,11 +22,12 @@ import type { Tile } from "@/data/types";
 import type { EnvMeta } from "@/config/environments.generated";
 import { getVerseText } from "@/lib/bible/client";
 import { buildTrainingPlan, type MatchPlan, type MinigameType } from "@/lib/engine/match";
+import type { VerseLevel } from "@/config/game";
 import { levelFromXp } from "@/lib/engine/mastery";
 import { displayRef } from "@/lib/refs";
 import { TEXT } from "@/copy/strings";
 import { DUMMY_DISPLAY_H, DUMMY_SPRITE, TRAINABLE_GAMES, TRAINING_ENVS } from "@/config/training";
-import { Button } from "@/components/ui/Button";
+import { BattleClickContext, Button } from "@/components/ui/Button";
 import { EnemyHpBar } from "@/components/ui/Bars";
 import { Nameplate } from "@/components/ui/Nameplate";
 import { CloseIcon } from "@/components/ui/icons";
@@ -42,6 +43,9 @@ const ATTACK_CYCLE = ["atk1", "atk2", "atk3"] as const;
 interface Setup {
   tile: Tile;
   games: MinigameType[];
+  /** L1–L7 the player picked — sets how hard the games play (not the verse's
+      own level), so any verse can be drilled at any point on the ladder. */
+  level: VerseLevel;
 }
 
 export function TrainingGroundScreen({ onClose }: { onClose: () => void }) {
@@ -57,7 +61,7 @@ export function TrainingGroundScreen({ onClose }: { onClose: () => void }) {
   if (setup) {
     return (
       <Session
-        key={`${setup.tile.id}:${setup.games.join(",")}`}
+        key={`${setup.tile.id}:${setup.level}:${setup.games.join(",")}`}
         setup={setup}
         env={env}
         onChangeSetup={() => setSetup(null)}
@@ -70,20 +74,30 @@ export function TrainingGroundScreen({ onClose }: { onClose: () => void }) {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * The scene header mirrors a real fight exactly: an X, one health bar, one
+ * name. No screen title, no round counter — the counter lives down beside the
+ * minigame label, same as a match.
+ *
+ * `hp` is omitted on the setup screen (nothing is being fought yet), where the
+ * title is shown instead so the place still identifies itself.
+ */
 function Scene({
   env,
   onClose,
   closeLabel,
-  right,
-  bar,
+  hp,
+  name,
+  title,
   children,
 }: {
   env: EnvMeta;
   onClose: () => void;
   closeLabel: string;
-  right?: React.ReactNode;
-  /** The dummy's life bar — cosmetic; it just tracks session progress. */
-  bar?: React.ReactNode;
+  /** The dummy's life bar — cosmetic; it tracks session progress. */
+  hp?: { total: number; remaining: number };
+  name?: string;
+  title?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -91,7 +105,7 @@ function Scene({
       <Parallax env={env} />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/35 to-transparent" />
       <div className="relative mx-auto w-full max-w-2xl">
-        <div className="flex items-start justify-between px-4">
+        <div className="relative flex items-start gap-3 px-4">
           <button
             aria-label={closeLabel}
             onClick={onClose}
@@ -99,14 +113,19 @@ function Scene({
           >
             <CloseIcon size={18} />
           </button>
-          <p className="pt-1 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-            {TEXT.training.title}
-          </p>
-          <span className="min-w-8 pt-1 text-right text-[11px] font-extrabold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-            {right}
-          </span>
+          <div className="flex-1 pr-2">
+            {hp && <EnemyHpBar total={hp.total} remaining={hp.remaining} />}
+            {(name ?? title) && (
+              <p
+                className={`text-center text-[11px] font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${
+                  hp ? "mt-1" : "pt-1"
+                }`}
+              >
+                {name ?? title}
+              </p>
+            )}
+          </div>
         </div>
-        {bar}
         {children}
       </div>
     </div>
@@ -129,6 +148,10 @@ function SetupScreen({
   const [tileId, setTileId] = useState<string | null>(drillable[0]?.id ?? null);
   const [games, setGames] = useState<MinigameType[]>(() => [...TRAINABLE_GAMES]);
   const tile = drillable.find((t) => t.id === tileId) ?? null;
+  // Default to where the verse actually sits, then let them move it anywhere.
+  const [level, setLevel] = useState<VerseLevel>(
+    () => (tile ? levelFromXp(tile.verseXp, tile.masteryGoal) : 3) as VerseLevel,
+  );
 
   function toggle(g: MinigameType) {
     setGames((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]));
@@ -136,7 +159,7 @@ function SetupScreen({
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-x-clip bg-white">
-      <Scene env={env} onClose={onClose} closeLabel={TEXT.training.leave}>
+      <Scene env={env} onClose={onClose} closeLabel={TEXT.training.leave} title={TEXT.training.title}>
         <div style={{ minHeight: 130 }} className="mt-3 flex items-end justify-center px-6">
           <div className="flex justify-center overflow-visible" style={{ width: 120 }}>
             <SpriteAnimator sprite={DUMMY_SPRITE} anim="idle" size={DUMMY_DISPLAY_H} />
@@ -235,13 +258,38 @@ function SetupScreen({
                 })}
               </div>
 
+              {/* --- difficulty --- */}
+              <SectionHeading>{TEXT.training.chooseLevel}</SectionHeading>
+              <p className="mb-2 -mt-1 text-[11px] font-bold text-ink-faint">
+                {TEXT.training.levelHint}
+              </p>
+              <div className="flex gap-1 rounded-xl bg-shell p-1">
+                {([1, 2, 3, 4, 5, 6, 7] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLevel(l)}
+                    aria-pressed={l === level}
+                    className={`flex-1 rounded-lg py-2 text-[12px] font-extrabold transition-colors ${
+                      l === level ? "bg-gold text-gold-dark shadow-sm" : "text-ink-soft"
+                    }`}
+                  >
+                    L{l}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] font-bold text-ink-faint">
+                {TEXT.training.levelBlurb(level)}
+              </p>
+
               <div className="mt-6">
                 <Button
                   className="w-full"
                   disabled={games.length === 0 || tile === null}
-                  onClick={() => tile && onStart({ tile, games })}
+                  onClick={() => tile && onStart({ tile, games, level })}
                 >
-                  {games.length === 0 ? TEXT.training.startDisabled : TEXT.training.start}
+                  {games.length === 0
+                    ? TEXT.training.startDisabled
+                    : TEXT.training.startCount(games.length)}
                 </Button>
               </div>
             </>
@@ -284,7 +332,7 @@ function Session({
   onChangeSetup: () => void;
   onClose: () => void;
 }) {
-  const { tile, games } = setup;
+  const { tile, games, level } = setup;
   const { snapshot } = useApp();
   const hero = characterById(snapshot?.user.characterSprite);
   const [plan, setPlan] = useState<MatchPlan | null>(null);
@@ -304,7 +352,6 @@ function Session({
     let alive = true;
     getVerseText(tile.verseId, tile.translation).then((text) => {
       if (!alive) return;
-      const level = levelFromXp(tile.verseXp, tile.masteryGoal);
       setPlan(buildTrainingPlan(tile.verseId, text, level, games));
       setRoundIndex(0);
       setDone(false);
@@ -313,7 +360,7 @@ function Session({
     return () => {
       alive = false;
     };
-  }, [tile, games, session]);
+  }, [tile, games, level, session]);
 
   useEffect(() => {
     return () => {
@@ -353,21 +400,23 @@ function Session({
   const accuracy = strikes.total === 0 ? null : Math.round((strikes.hit / strikes.total) * 100);
 
   return (
+    // A session is a fight: its buttons click like one.
+    <BattleClickContext.Provider value={true}>
     <div className="fixed inset-0 z-[60] flex flex-col overflow-x-clip bg-white">
       <Scene
         env={env}
         onClose={onClose}
         closeLabel={TEXT.training.quit}
-        right={plan ? TEXT.training.round(Math.min(roundIndex + 1, plan.rounds.length), plan.rounds.length) : null}
-        bar={
-          plan ? (
-            <div className="px-4 pt-2">
-              <EnemyHpBar total={plan.rounds.length} remaining={Math.max(0, plan.rounds.length - roundIndex)} />
-              <p className="mt-1 text-center text-[11px] font-extrabold uppercase tracking-[0.2em] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                {TEXT.training.dummy}
-              </p>
-            </div>
-          ) : null
+        name={TEXT.training.dummy}
+        hp={
+          plan
+            ? {
+                total: plan.rounds.length,
+                // `done` means the last blow landed — the bar must read empty,
+                // not one segment short (roundIndex stops at the final round).
+                remaining: done ? 0 : Math.max(0, plan.rounds.length - roundIndex),
+              }
+            : undefined
         }
       >
         <div
@@ -436,7 +485,7 @@ function Session({
               )}
               <p className="mb-2 flex shrink-0 items-baseline justify-between gap-3 text-[11px] font-bold uppercase tracking-wide text-ink-faint">
                 <span className="min-w-0 truncate">
-                  {MINIGAME_LABELS[round.type]}
+                  {MINIGAME_LABELS[round.type]} · {roundIndex + 1}/{plan?.rounds.length ?? 0}
                   {round.chunk ? ` · Part ${round.chunk.index} of ${round.chunk.total}` : ""}
                 </span>
                 {accuracy !== null && (
@@ -462,5 +511,6 @@ function Session({
         </div>
       </div>
     </div>
+    </BattleClickContext.Provider>
   );
 }

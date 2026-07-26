@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { TEXT } from "@/copy/strings";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildFadingWords } from "@/lib/engine/minigames";
+import { playSfx } from "@/lib/audio/engine";
 import { CheckRow, ChipButton, ChunkContext, usePlacement } from "./shared";
 
 const READ_MS = 2600; // how long the full text shows before fading (tunable)
@@ -67,7 +68,10 @@ export function FadingWords({
             return (
               <button
                 key={i}
-                onClick={() => p.remove(slotIdx)}
+                onClick={() => {
+                  playSfx("ui-click-battle");
+                  p.remove(slotIdx);
+                }}
                 className={`mx-0.5 inline-block rounded-lg border px-1.5 align-baseline font-serif text-[18px] ${
                   wrong ? "border-bad bg-bad-wash text-bad" : "border-shell-deep/40 bg-shell/60 text-ink"
                 }`}

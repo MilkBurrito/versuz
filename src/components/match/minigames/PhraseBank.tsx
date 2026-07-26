@@ -8,6 +8,7 @@ import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildPhraseBank } from "@/lib/engine/minigames";
 import { TEXT } from "@/copy/strings";
+import { playSfx } from "@/lib/audio/engine";
 import { CheckRow, ChunkContext, usePlacement } from "./shared";
 
 export function PhraseBank({
@@ -34,7 +35,11 @@ export function PhraseBank({
             return (
               <button
                 key={i}
-                onClick={() => filled && p.remove(i)}
+                onClick={() => {
+                  if (!filled) return;
+                  playSfx("ui-click-battle");
+                  p.remove(i);
+                }}
                 className={`flex min-h-9 items-center gap-2 rounded-xl border-2 px-2.5 py-1.5 text-left font-serif text-[16px] leading-snug transition-colors ${
                   wrong
                     ? "border-bad bg-bad-wash text-bad"
@@ -60,7 +65,10 @@ export function PhraseBank({
               <button
                 key={i}
                 disabled={used}
-                onClick={() => p.place(i)}
+                onClick={() => {
+                  playSfx("ui-click-battle");
+                  p.place(i);
+                }}
                 className={`rounded-xl border-2 px-2.5 py-1.5 text-left font-serif text-[15px] leading-snug shadow-[0_2px_0_rgba(0,0,0,0.08)] transition-all active:translate-y-[1px] active:shadow-none ${
                   used
                     ? "border-shell bg-shell text-transparent shadow-none"

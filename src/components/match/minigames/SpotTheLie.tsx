@@ -8,6 +8,7 @@ import { useState } from "react";
 import { TEXT } from "@/copy/strings";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildSpotTheLie } from "@/lib/engine/minigames";
+import { playSfx } from "@/lib/audio/engine";
 import { CheckRow, ChunkContext } from "./shared";
 import { WordOrder } from "./WordOrder";
 
@@ -50,6 +51,7 @@ function SpotTheLieBoard({
   const solved = order.join(" ") === truth.join(" ");
 
   function tap(i: number) {
+    playSfx("ui-click-battle");
     setCheckedWrong(false);
     if (selected === null) {
       setSelected(i);

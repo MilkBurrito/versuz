@@ -215,11 +215,16 @@ export function buildMatchPlan(
 }
 
 /**
- * Training Ground plan: the same LENGTH as a real match at this level, but
- * built only from the minigames the player picked (cycled in order, so every
- * chosen game shows up). Splittable games still expand into chunk rounds, and
- * the same soft cap applies — so a session runs about as long as a real match.
- * No enemy/player HP semantics are used by the drill; they're filled for shape.
+ * Training Ground plan: EVERY game the player picked, exactly once, in ladder
+ * order (easiest first) — picking ten games means playing ten, not a sample.
+ *
+ * `level` is the player's chosen L1–L7 difficulty, not the verse's real level:
+ * it drives the same knobs a real match uses (how much First Letter blanks,
+ * how many words Spot the Lie displaces, decoy counts, fade share…), so the
+ * whole ladder is available for any verse.
+ *
+ * Splittable games target ONE chunk (as boss rounds do) rather than expanding
+ * into every chunk, which is what keeps "one game = one round" true.
  */
 export function buildTrainingPlan(
   verseId: string,
@@ -228,26 +233,45 @@ export function buildTrainingPlan(
   chosen: readonly MinigameType[],
   rng: () => number = Math.random,
 ): MatchPlan {
-  const pool = chosen.length > 0 ? chosen : ALL_TYPES;
-  const count = minigameCountForLevel(level);
+  const picked = chosen.length > 0 ? chosen : ALL_TYPES;
+  // Ladder order, and never the same game twice.
+  const order = ALL_TYPES.filter((t) => picked.includes(t));
   const chunks = splitVerseText(verseText);
   const difficulty = difficultyForLevel(level);
 
-  const rounds: MinigameRound[] = [];
-  for (let i = 0; i < count; i++) {
-    rounds.push(
-      ...chunkRounds(pool[i % pool.length]!, verseId, verseText, chunks, difficulty, rng),
-    );
-    if (rounds.length >= GAME.split.SOFT_CAP_TOTAL_MINIGAMES) break;
-  }
-  const capped = rounds.slice(0, GAME.split.SOFT_CAP_TOTAL_MINIGAMES);
+  const rounds: MinigameRound[] = order.map((type) => {
+    if (SPLITTABLE.has(type) && chunks.length > 1) {
+      const idx = Math.floor(rng() * chunks.length);
+      return {
+        type,
+        verseId,
+        verseText,
+        words: chunks[idx]!,
+        chunk: { index: idx + 1, total: chunks.length },
+        contextWords: chunks.slice(0, idx).flat(),
+        difficulty,
+        timerSeconds: timerForRound(type, chunks[idx]!.length, difficulty, false, rng),
+      };
+    }
+    const words = chunks.flat();
+    return {
+      type,
+      verseId,
+      verseText,
+      words,
+      chunk: null,
+      contextWords: [],
+      difficulty,
+      timerSeconds: timerForRound(type, words.length, difficulty, false, rng),
+    };
+  });
 
   return {
     isBoss: false,
     verseLevel: level,
-    rounds: capped,
-    enemyHp: capped.length,
-    enemies: [capped.length],
+    rounds,
+    enemyHp: rounds.length,
+    enemies: [rounds.length],
     playerHp: playerHpForLevel(level),
     finisher: { mode: "choice", verseId }, // unused: training has no finisher
   };

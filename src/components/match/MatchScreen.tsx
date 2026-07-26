@@ -16,7 +16,7 @@ import type { Enemy } from "@/config/enemies";
 import { displayRef } from "@/lib/refs";
 import { TEXT } from "@/copy/strings";
 import { EnemyHpBar, PlayerHpBar } from "@/components/ui/Bars";
-import { Button } from "@/components/ui/Button";
+import { BattleClickContext, Button } from "@/components/ui/Button";
 import { Nameplate } from "@/components/ui/Nameplate";
 import { CloseIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
@@ -171,6 +171,7 @@ export function MatchScreen({ match }: { match: MatchSession }) {
 
   return (
     // Full-bleed surface above every overlay (campaign detail, add sheets are z-50).
+    <BattleClickContext.Provider value={true}>
     <div className="fixed inset-0 z-[60] flex flex-col overflow-x-clip bg-white">
       {/* --- battle scene --- */}
       <div className="relative w-full shrink-0 pb-9 pt-[calc(env(safe-area-inset-top)+8px)]">
@@ -304,5 +305,6 @@ export function MatchScreen({ match }: { match: MatchSession }) {
         </div>
       )}
     </div>
+    </BattleClickContext.Provider>
   );
 }

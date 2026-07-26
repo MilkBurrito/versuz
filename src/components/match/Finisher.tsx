@@ -9,6 +9,7 @@ import { useState } from "react";
 import { TEXT } from "@/copy/strings";
 import { displayRef, referenceAnswerMatches } from "@/lib/refs";
 import { CheckButton } from "@/components/ui/Button";
+import { playSfx } from "@/lib/audio/engine";
 
 // Plausible-reference pool for multiple-choice decoys.
 const DECOY_REFS = [
@@ -66,6 +67,7 @@ function ChoiceFinisher({
             key={opt}
             disabled={revealed}
             onClick={() => {
+              playSfx("ui-click-battle");
               setPicked(opt);
               setTimeout(() => onFinish(opt === verseId), 650);
             }}

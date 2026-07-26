@@ -382,24 +382,44 @@ describe("text normalization", () => {
 describe("training ground plans", () => {
   const verse = "For God so loved the world that he gave his only begotten Son";
 
-  it("runs the same number of rounds as a real match at that level", () => {
-    const real = buildMatchPlan("JHN.3.16", verse, 3);
-    const training = buildTrainingPlan("JHN.3.16", verse, 3, ["word_bank"]);
-    expect(training.rounds.length).toBe(real.rounds.length);
+  it("plays EVERY chosen game exactly once — ten picked means ten rounds", () => {
+    const chosen: MinigameType[] = [
+      "spot_the_lie", "mystery_word", "letter_reveal", "phrase_bank", "word_bank",
+      "word_order", "fading_words", "first_letter", "snowball", "rapid_recall",
+    ];
+    const plan = buildTrainingPlan("JHN.3.16", verse, 3, chosen);
+    expect(plan.rounds.length).toBe(chosen.length);
+    expect(new Set(plan.rounds.map((r) => r.type)).size).toBe(chosen.length);
   });
 
   it("only uses the games the player picked", () => {
     const chosen: MinigameType[] = ["word_bank", "mystery_word"];
     const plan = buildTrainingPlan("JHN.3.16", verse, 5, chosen);
-    expect(plan.rounds.length).toBeGreaterThan(0);
+    expect(plan.rounds.length).toBe(2);
     for (const r of plan.rounds) expect(chosen).toContain(r.type);
   });
 
-  it("cycles through every chosen game", () => {
-    const chosen: MinigameType[] = ["word_bank", "mystery_word", "rapid_recall"];
-    const plan = buildTrainingPlan("JHN.3.16", verse, 7, chosen);
-    const used = new Set(plan.rounds.map((r) => r.type));
-    for (const g of chosen) expect(used.has(g)).toBe(true);
+  it("orders rounds easiest-first, however the boxes were ticked", () => {
+    const plan = buildTrainingPlan("JHN.3.16", verse, 4, [
+      "rapid_recall", "spot_the_lie", "word_bank",
+    ]);
+    expect(plan.rounds.map((r) => r.type)).toEqual([
+      "spot_the_lie", "word_bank", "rapid_recall",
+    ]);
+  });
+
+  it("the chosen level sets the difficulty, not the verse's own level", () => {
+    const easy = buildTrainingPlan("JHN.3.16", verse, 1, ["first_letter"]);
+    const hard = buildTrainingPlan("JHN.3.16", verse, 7, ["first_letter"]);
+    expect(easy.rounds[0]!.difficulty).toBe(1);
+    expect(hard.rounds[0]!.difficulty).toBe(3);
+  });
+
+  it("a long verse still gives one round per game (one chunk, not all of them)", () => {
+    const long = Array.from({ length: 60 }, (_, i) => `word${i}`).join(" ");
+    const plan = buildTrainingPlan("JHN.3.16", long, 5, ["word_bank", "first_letter"]);
+    expect(plan.rounds.length).toBe(2);
+    expect(plan.rounds.every((r) => r.chunk !== null)).toBe(true);
   });
 });
 

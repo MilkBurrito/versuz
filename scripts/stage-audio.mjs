@@ -29,6 +29,9 @@ const OUT_MUSIC = path.join(ROOT, "public", "audio", "music");
 const SFX = {
   "ui-click": ["interface/click/UIClick_INTERFACE-Strong Click 1_HY_PC-001.wav"],
   "ui-open": ["interface/open menu/UIClick_INTERFACE-Rattling Click_HY_PC-001.wav"],
+  // Everything tapped inside a fight EXCEPT Check, which keeps the plain click
+  // so the "I'm committing my answer" beat stays distinct.
+  "ui-click-battle": ["interface/positive click/UIClick_INTERFACE-Positive Click_HY_PC-001.wav"],
   "attack-swing": ["weapon slash/DSGNMisc_MELEE-Sword Slash_HY_PC-001.wav"],
   "hit-melee": ["give damage/handheld attack/FGHTImpt_MELEE-Swish Hit_HY_PC-001.wav"],
   "hit-ranged": ["give damage/bow attack/DSGNMisc_PROJECTILE-Laser Shot_HY_PC-001.wav"],

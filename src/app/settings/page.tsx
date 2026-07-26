@@ -61,8 +61,9 @@ export default function SettingsPage() {
           </div>
 
           <Section title="Verses">
-            <Row label="Default translation" hint="Applies to newly added verses only">
+            <Row label="Default translation" hint="Applies to newly added verses only" stack>
               <Segmented
+                wrap
                 options={available}
                 value={user.defaultTranslation}
                 onChange={(v) => update({ defaultTranslation: v })}
@@ -168,15 +169,25 @@ function Row({
   label,
   hint,
   locked,
+  /** Wide controls (the translation picker) get their own line on narrow
+      screens — side-by-side would squeeze seven codes into a sliver. */
+  stack,
   children,
 }: {
   label: string;
   hint?: string;
   locked?: boolean;
+  stack?: boolean;
   children?: React.ReactNode;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-3 px-4 py-3.5 ${locked ? "opacity-55" : ""}`}>
+    <div
+      className={`gap-3 px-4 py-3.5 ${locked ? "opacity-55" : ""} ${
+        stack
+          ? "flex flex-col items-stretch sm:flex-row sm:items-center sm:justify-between"
+          : "flex items-center justify-between"
+      }`}
+    >
       <div className="min-w-0">
         <p className="text-[14px] font-bold text-ink">{label}</p>
         {hint && <p className="mt-0.5 text-[11px] font-bold text-ink-faint">{hint}</p>}
@@ -197,19 +208,23 @@ function Segmented<T extends string | number>({
   value,
   onChange,
   render = (v) => `${v}`,
+  /** Only the full-width rows wrap; a compact control beside a label must
+      stay on one line or it pushes its own options onto a second row. */
+  wrap = false,
 }: {
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
   render?: (v: T) => string;
+  wrap?: boolean;
 }) {
   return (
-    <div className="flex shrink-0 gap-1 rounded-xl bg-shell p-1">
+    <div className={`flex gap-1 rounded-xl bg-shell p-1 ${wrap ? "flex-wrap" : "shrink-0"}`}>
       {options.map((opt) => (
         <button
           key={`${opt}`}
           onClick={() => onChange(opt)}
-          className={`rounded-lg px-3 py-1.5 text-[12px] font-extrabold transition-colors ${
+          className={`min-w-11 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-center text-[12px] font-extrabold transition-colors sm:px-3 ${
             opt === value ? "bg-gold text-gold-dark shadow-sm" : "text-ink-soft"
           }`}
         >

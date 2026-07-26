@@ -12,7 +12,7 @@ import { useApp } from "@/state/store";
 import { displayRef } from "@/lib/refs";
 import { TEXT } from "@/copy/strings";
 import { levelProgress } from "@/lib/engine/mastery";
-import { Button } from "@/components/ui/Button";
+import { BattleClickContext, Button } from "@/components/ui/Button";
 import { XPBar } from "@/components/ui/Bars";
 import { PixelIcon } from "@/components/ui/icons";
 import { characterById, SpriteAnimator } from "@/components/sprites/SpriteAnimator";
@@ -49,6 +49,7 @@ export function PostMatch({ match }: { match: MatchSession }) {
   if (!settle) return null;
 
   return (
+    <BattleClickContext.Provider value={true}>
     <button
       onClick={advancePost}
       className="fixed inset-0 z-[60] flex w-full flex-col items-center justify-center bg-cream px-8 text-center"
@@ -182,6 +183,7 @@ export function PostMatch({ match }: { match: MatchSession }) {
         {TEXT.postMatch.tapToContinue}
       </span>
     </button>
+    </BattleClickContext.Provider>
   );
 }
 
@@ -260,6 +262,7 @@ function LossScreen({
 }) {
   const hero = characterById(useApp.getState().snapshot?.user.characterSprite);
   return (
+    <BattleClickContext.Provider value={true}>
     <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-cream px-8 text-center">
       <div className="flex w-[140px] justify-center overflow-visible">
         <SpriteAnimator sprite={hero.sprite} anim="hit" size={hero.battleSize} playKey={1} />
@@ -286,5 +289,6 @@ function LossScreen({
         <Button onClick={onHome}>{TEXT.postMatch.home}</Button>
       </div>
     </div>
+    </BattleClickContext.Provider>
   );
 }

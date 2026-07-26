@@ -6,6 +6,7 @@
 import { useState } from "react";
 import type { MinigameRound } from "@/lib/engine/match";
 import { buildMysteryWord } from "@/lib/engine/minigames";
+import { playSfx } from "@/lib/audio/engine";
 import { ChunkContext, HintButton } from "./shared";
 
 export function MysteryWord({
@@ -21,6 +22,7 @@ export function MysteryWord({
   const answer = round.words[data.hiddenIndex]!.norm;
 
   function pick(option: string) {
+    playSfx("ui-click-battle");
     if (option === answer) {
       onCheck(true);
     } else {

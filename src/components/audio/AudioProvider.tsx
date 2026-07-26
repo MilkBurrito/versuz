@@ -19,6 +19,7 @@ import {
   playMusic,
   preloadSfx,
   setMusicEnabled,
+  setPageHidden,
   setSfxEnabled,
   unlock,
 } from "@/lib/audio/engine";
@@ -43,6 +44,13 @@ export function AudioProvider() {
       window.removeEventListener("pointerdown", onGesture);
       window.removeEventListener("keydown", onGesture);
     };
+  }, []);
+
+  // Leaving the tab pauses the music; returning resumes it.
+  useEffect(() => {
+    const onVisibility = () => setPageHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   useEffect(() => {

@@ -178,8 +178,17 @@ export const TEXT = {
       "Drill any verse you've already learned against the training dummy. No energy, no XP, no effect on your review schedule.",
     chooseVerse: "Verse",
     anyVerse: "Surprise me",
+    chooseLevel: "Difficulty",
+    levelHint: "How hard the games play — independent of the verse's own level.",
+    levelBlurb: (l: number) =>
+      l <= 2
+        ? "Gentle: fewer blanks, bigger phrase chunks, no clocks."
+        : l <= 5
+          ? "Standard: the usual mix, some rounds timed."
+          : "Hard: full typing, more words displaced, more clocks.",
+    startCount: (n: number) => `Start training · ${n} ${n === 1 ? "game" : "games"}`,
     chooseGames: "Games",
-    gamesHint: "Pick the games you want — the match is the usual length.",
+    gamesHint: "Every game you tick gets played once, easiest first.",
     all: "All",
     none: "None",
     start: "Start training",

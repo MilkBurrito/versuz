@@ -125,6 +125,7 @@ export function HintButton({
   const canAfford = free || energy >= GAME.hints.ENERGY_COST;
   async function click() {
     if (busy) return;
+    playSfx("ui-click-battle");
     if (free) {
       onHint();
       return;
@@ -210,7 +211,10 @@ export function ChipButton({
   return (
     <button
       disabled={used}
-      onClick={onClick}
+      onClick={() => {
+        playSfx("ui-click-battle");
+        onClick();
+      }}
       className={`rounded-xl border-2 px-3.5 py-2 font-serif text-[16px] shadow-[0_2px_0_rgba(0,0,0,0.08)] transition-all active:translate-y-[1px] active:shadow-none ${
         used
           ? "border-shell bg-shell text-transparent shadow-none"
@@ -235,7 +239,10 @@ export function PlacedChip({
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        playSfx("ui-click-battle");
+        onClick();
+      }}
       className={`mx-0.5 inline-block rounded-lg border px-1.5 align-baseline font-serif text-[18px] leading-relaxed ${
         wrong ? "border-bad bg-bad-wash text-bad" : "border-shell-deep/40 bg-shell/60 text-ink"
       }`}

@@ -6,8 +6,21 @@
 
 "use client";
 
-import type { ButtonHTMLAttributes } from "react";
+import { createContext, useContext, type ButtonHTMLAttributes } from "react";
 import { playSfx } from "@/lib/audio/engine";
+
+/**
+ * True inside a fight (match, post-match, training session). Buttons there use
+ * the brighter "positive" click; CHECK deliberately keeps the plain click so
+ * committing an answer stays audibly distinct from everything else.
+ */
+export const BattleClickContext = createContext(false);
+
+/** The click a plain button should make, given where it lives. */
+export function useClickSound(): () => void {
+  const inBattle = useContext(BattleClickContext);
+  return () => playSfx(inBattle ? "ui-click-battle" : "ui-click");
+}
 
 type Variant = "primary" | "outline" | "danger" | "info";
 
@@ -28,11 +41,12 @@ export function Button({
   onClick,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
+  const click = useClickSound();
   return (
     <button
       {...props}
       onClick={(e) => {
-        playSfx("ui-click");
+        click();
         onClick?.(e);
       }}
       className={`rounded-2xl px-5 py-3 text-[15px] font-bold transition-transform disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0 disabled:active:shadow-[0_3px_0_rgba(109,79,16,0.35)] ${styles[variant]} ${className}`}

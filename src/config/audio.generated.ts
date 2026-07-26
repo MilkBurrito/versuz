@@ -16,6 +16,9 @@ export const SFX_SOURCES: Record<string, string[]> = {
   "ui-open": [
     "/audio/sfx/ui-open.m4a"
   ],
+  "ui-click-battle": [
+    "/audio/sfx/ui-click-battle.m4a"
+  ],
   "attack-swing": [
     "/audio/sfx/attack-swing.m4a"
   ],
